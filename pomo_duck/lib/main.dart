@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app/app.dart';
+import 'app/app_config.dart';
 import 'common/theme/colors.dart';
 
 // Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -13,7 +14,7 @@ import 'common/theme/colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await initConfig();
+  await initConfig();
   // final loginInfo = await LocalStorageManager.instance.getData(LocalStorageKey.login);
   // String? language =
   // await LocalStorageManager.instance.getData(LocalStorageKey.language);
