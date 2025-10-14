@@ -6,4 +6,5 @@
 
 # Generate languages
 ```flutter pub run intl_utils:generate```
+```flutter pub run easy_localization:generate -S ./assets/translations -f keys -o locale_keys.g.dart -O ./lib/generated```
 

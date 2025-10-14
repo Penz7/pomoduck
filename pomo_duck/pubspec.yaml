@@ -22,6 +22,11 @@ dependencies:
   # share & qr
   share_plus: 11.1.0
   qr_flutter: 4.1.0
+  # google font
+  google_fonts: 6.2.1
+  # language
+  easy_localization: 3.0.8
+  easy_localization_loader: 2.0.2
 
 dev_dependencies:
   flutter_test:
@@ -38,6 +43,7 @@ flutter:
     - assets/
     - assets/icons/
     - assets/images/
+    - assets/translations/
 
 flutter_gen:
   output: lib/generated/assets
