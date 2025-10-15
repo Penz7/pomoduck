@@ -1,14 +1,12 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pomo_duck/app/app.dart';
 import 'package:pomo_duck/app/router/router_key_manager.dart';
-import 'package:pomo_duck/generated/locale_keys.g.dart';
 
 import '../../features/common_page/maintain_screen.dart';
 import '../../features/common_page/page_not_found_screen.dart';
 import '../../features/home/home_screen.dart';
+import '../../features/timer/timer_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -30,6 +28,13 @@ class AppRouter {
         parentNavigatorKey: RouterKeyManager.instance.rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const HomeScreen();
+        },
+      ),
+      GoRoute(
+        path: '/timer',
+        parentNavigatorKey: RouterKeyManager.instance.rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const TimerScreen();
         },
       ),
       // StatefulShellRoute.indexedStack(
