@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../core/local_storage/local_storage.dart';
+import '../data/database/database_helper.dart';
+import '../core/cache/smart_cache_manager.dart';
+import '../core/monitoring/performance_monitor.dart';
 import 'app_bloc_observer.dart';
 
 Future<void> initConfig() async {
@@ -18,6 +21,18 @@ Future<void> initConfig() async {
     DeviceOrientation.portraitUp,
   ]);
   await LocalStorageManager.instance.init();
+  
+  // Khởi tạo HiveDataManager
+  await HiveDataManager.initialize();
+  
+  // Khởi tạo SQLite database
+  await DatabaseHelper.instance.database;
+  
+  // Khởi tạo Smart Cache Manager
+  SmartCacheManager.instance.initialize();
+  
+  // Khởi tạo Performance Monitor
+  PerformanceMonitor.instance.startMonitoring();
   // if (FlutterConfigPlus.get('ENVIRONMENT') == 'testing') {
   //   final result = await APIService.instance.auth.refreshToken();
   //   if (result.status == false) {

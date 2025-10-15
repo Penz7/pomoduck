@@ -2,10 +2,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/app.dart';
 import 'app/app_config.dart';
 import 'common/theme/colors.dart';
+import 'data/models/pomodoro_settings.dart';
+import 'data/models/current_timer_state.dart';
+import 'data/models/user_preferences_model.dart';
 
 // Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 //   // await Firebase.initializeApp();
@@ -14,6 +18,15 @@ import 'common/theme/colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Hive adapters
+  await Hive.initFlutter();
+  
+  // Register Hive adapters
+  Hive.registerAdapter(PomodoroSettingsAdapter());
+  Hive.registerAdapter(CurrentTimerStateAdapter());
+  Hive.registerAdapter(UserPreferencesModelAdapter());
+  
   await initConfig();
   // final loginInfo = await LocalStorageManager.instance.getData(LocalStorageKey.login);
   // String? language =
