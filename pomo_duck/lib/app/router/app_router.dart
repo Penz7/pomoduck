@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pomo_duck/app/router/router_key_manager.dart';
+import 'package:pomo_duck/features/history/history_screen.dart';
+import 'package:pomo_duck/features/setting/setting_screen.dart';
+import 'package:pomo_duck/features/statistic/statistic_screen.dart';
 
 import '../../features/common_page/maintain_screen.dart';
 import '../../features/common_page/page_not_found_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/main_tabbar_screen.dart';
-import '../../features/timer/timer_screen.dart';
-import '../../features/common_page/settings_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -71,9 +72,9 @@ class AppRouter {
                 // bottom navigation bar.
                 path: '/stats',
                 pageBuilder: (BuildContext context, GoRouterState state) {
-                  return MaterialPage<void>(
+                  return const MaterialPage<void>(
                     restorationId: 'calories',
-                    child: Container(),
+                    child: StatisticScreen(),
                   );
                 },
                 routes: const <RouteBase>[],
@@ -89,9 +90,9 @@ class AppRouter {
                 // bottom navigation bar.
                 path: '/time-line',
                 pageBuilder: (BuildContext context, GoRouterState state) {
-                  return MaterialPage<void>(
+                  return const MaterialPage<void>(
                     restorationId: 'time-line',
-                    child: Container(),
+                    child: HistoryScreen(),
                   );
                 },
                 routes: const <RouteBase>[],
@@ -105,9 +106,9 @@ class AppRouter {
               GoRoute(
                 path: '/setting',
                 pageBuilder: (BuildContext context, GoRouterState state) =>
-                    MaterialPage<void>(
+                    const MaterialPage<void>(
                   restorationId: 'setting',
-                  child: Container(),
+                  child: SettingScreen(),
                 ),
                 routes: const <RouteBase>[],
               ),
