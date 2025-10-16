@@ -232,6 +232,25 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      // Auto-start toggles
+                      SwitchListTile(
+                        value: s.autoStartBreaks,
+                        onChanged: (v) => context
+                            .read<ConfigPomodoroCubit>()
+                            .setAutoStartBreaks(v),
+                        title: const Text('Auto-start breaks'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      SwitchListTile(
+                        value: s.autoStartPomodoros,
+                        onChanged: (v) => context
+                            .read<ConfigPomodoroCubit>()
+                            .setAutoStartPomodoros(v),
+                        title: const Text('Auto-start next Pomodoro'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 8),
+                      // Durations
                       const Text('Work Duration (minutes)'),
                       Slider(
                         value: (s.workDuration / 60).clamp(5.0, 200.0),
@@ -439,7 +458,7 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                               );
                               if (ctx.mounted) {
                                 Navigator.of(ctx).pop();
-                                ctx.goWithLastPath('pomodoro');
+                                ctx.goWithPath('/home/pomodoro');
                               }
                             },
                             child: const Text('Start'),

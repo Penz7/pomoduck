@@ -31,7 +31,19 @@ class HybridDataCoordinator {
     
     // 2. Determine session type
     final currentState = HiveDataManager.getCurrentTimerState();
-    final actualSessionType = sessionType ?? currentState.nextSessionType;
+    final actualSessionType = sessionType ?? currentState.nextSessionType; // camelCase for settings/hive
+    // map to DB enum string
+    String dbSessionTypeStr;
+    switch (actualSessionType) {
+      case 'shortBreak':
+        dbSessionTypeStr = 'short_break';
+        break;
+      case 'longBreak':
+        dbSessionTypeStr = 'long_break';
+        break;
+      default:
+        dbSessionTypeStr = 'work';
+    }
     
     // 3. Get duration from settings
     final plannedDuration = settings.getDurationForSessionType(actualSessionType);
@@ -39,7 +51,7 @@ class HybridDataCoordinator {
     // 4. Create session in SQLite
     final session = SessionModel(
       taskId: taskId,
-      sessionType: SessionType.fromString(actualSessionType),
+      sessionType: SessionType.fromString(dbSessionTypeStr),
       plannedDuration: plannedDuration,
       startTime: DateTime.now(),
       createdAt: DateTime.now(),
@@ -47,6 +59,18 @@ class HybridDataCoordinator {
     
     final sessionId = await DatabaseHelper.instance.insertSession(session);
     final createdSession = session.copyWith(id: sessionId);
+
+    // 4.1: Ensure cycle exists and bind session into the cycle
+    try {
+      PomodoroCycleModel? activeCycle = await getActiveCycle();
+      if (activeCycle == null && dbSessionTypeStr == 'work') {
+        // chỉ tạo cycle mới khi bắt đầu work đầu tiên
+        activeCycle = await startNewCycle();
+      }
+      if (activeCycle != null && activeCycle.id != null) {
+        await addSessionToCycle(activeCycle.id!, sessionId);
+      }
+    } catch (_) {}
     
     // 5. Update timer state in Hive (ultra-fast)
     await HiveDataManager.startTimer(
@@ -83,11 +107,28 @@ class HybridDataCoordinator {
         // 2. Update task if it's a work session
         if (currentState.sessionType == 'work' && currentState.taskId != null) {
           await DatabaseHelper.instance.incrementCompletedPomodoros(currentState.taskId!);
+          // 2.1 Update active cycle's completedPomodoros and complete cycle if needed
+          try {
+            final activeCycle = await getActiveCycle();
+            if (activeCycle != null && activeCycle.id != null) {
+              final incremented = await incrementCyclePomodoros(activeCycle.id!);
+              if (incremented.isCompleted) {
+                await completeCycle(incremented.id!);
+              }
+            }
+          } catch (_) {}
         }
       }
     }
     
     // 3. Update timer state in Hive
+    // 3.1 If finished a work session, increment completedPomodoros in Hive state to support long break logic
+    if (currentState.sessionType == 'work') {
+      final inc = currentState.completedPomodoros + 1;
+      await HiveDataManager.updateTimerState(
+        currentState.copyWith(completedPomodoros: inc),
+      );
+    }
     await HiveDataManager.completeSession();
   }
 

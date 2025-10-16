@@ -30,14 +30,38 @@ class PomodoroScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const Center(
-                child: Text(
-                  'Pomodoro Timer',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              BlocBuilder<PomodoroCubit, PomodoroState>(
+                builder: (context, state) {
+                  final mm = (state.remainingSeconds ~/ 60)
+                      .toString()
+                      .padLeft(2, '0');
+                  final ss = (state.remainingSeconds % 60)
+                      .toString()
+                      .padLeft(2, '0');
+                  return Column(
+                    children: [
+                      Text(
+                        state.sessionType == 'work'
+                            ? 'Focus'
+                            : (state.sessionType == 'shortBreak'
+                                ? 'Short Break'
+                                : 'Long Break'),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      6.height,
+                      Text(
+                        '$mm:$ss',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               20.height,
               Assets.images.duckFocus.image(
