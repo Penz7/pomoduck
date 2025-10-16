@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pomo_duck/app/router/router_key_manager.dart';
 import 'package:pomo_duck/features/history/history_screen.dart';
+import 'package:pomo_duck/features/pomodoro/pomodoro_screen.dart';
 import 'package:pomo_duck/features/setting/setting_screen.dart';
 import 'package:pomo_duck/features/statistic/statistic_screen.dart';
 
@@ -59,7 +60,16 @@ class AppRouter {
                   restorationId: 'home',
                   child: HomeScreen(),
                 ),
-                routes: const <RouteBase>[],
+                routes: <RouteBase>[
+                  GoRoute(
+                    path: 'pomodoro',
+                    parentNavigatorKey:
+                        RouterKeyManager.instance.rootNavigatorKey,
+                    builder: (BuildContext context, GoRouterState state) {
+                      return const PomodoroScreen();
+                    },
+                  ),
+                ],
               ),
             ],
           ),

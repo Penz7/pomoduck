@@ -33,6 +33,7 @@ class SessionModel {
   final DateTime? startTime;
   final DateTime? endTime;
   final DateTime createdAt;
+  final String? tag; // Tag (sport, study, focus, ...)
 
   const SessionModel({
     this.id,
@@ -44,6 +45,7 @@ class SessionModel {
     this.startTime,
     this.endTime,
     required this.createdAt,
+    this.tag,
   });
 
   /// Tạo SessionModel từ Map (từ database)
@@ -62,6 +64,7 @@ class SessionModel {
           ? DateTime.parse(map['end_time'] as String) 
           : null,
       createdAt: DateTime.parse(map['created_at'] as String),
+      tag: map['tag'] as String?,
     );
   }
 
@@ -77,6 +80,7 @@ class SessionModel {
       'start_time': startTime?.toIso8601String(),
       'end_time': endTime?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
+      'tag': tag,
     };
   }
 
@@ -91,6 +95,7 @@ class SessionModel {
     DateTime? startTime,
     DateTime? endTime,
     DateTime? createdAt,
+    String? tag,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -102,6 +107,7 @@ class SessionModel {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       createdAt: createdAt ?? this.createdAt,
+      tag: tag ?? this.tag,
     );
   }
 
@@ -119,7 +125,7 @@ class SessionModel {
 
   @override
   String toString() {
-    return 'SessionModel(id: $id, taskId: $taskId, sessionType: $sessionType, plannedDuration: $plannedDuration, actualDuration: $actualDuration, isCompleted: $isCompleted, startTime: $startTime, endTime: $endTime, createdAt: $createdAt)';
+    return 'SessionModel(id: $id, taskId: $taskId, sessionType: $sessionType, plannedDuration: $plannedDuration, actualDuration: $actualDuration, isCompleted: $isCompleted, startTime: $startTime, endTime: $endTime, createdAt: $createdAt, tag: $tag)';
   }
 
   @override
@@ -134,7 +140,8 @@ class SessionModel {
         other.isCompleted == isCompleted &&
         other.startTime == startTime &&
         other.endTime == endTime &&
-        other.createdAt == createdAt;
+        other.createdAt == createdAt &&
+        other.tag == tag;
   }
 
   @override
@@ -147,6 +154,7 @@ class SessionModel {
         isCompleted.hashCode ^
         startTime.hashCode ^
         endTime.hashCode ^
-        createdAt.hashCode;
+        createdAt.hashCode ^
+        tag.hashCode;
   }
 }

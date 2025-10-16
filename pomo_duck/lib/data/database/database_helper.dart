@@ -17,7 +17,7 @@ class DatabaseHelper {
   
   // Database configuration
   static const String _databaseName = 'pomoduck.db';
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 1;
   
   // Table names
   static const String _tasksTable = 'tasks';
@@ -40,7 +40,6 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
     );
   }
   
@@ -56,7 +55,8 @@ class DatabaseHelper {
         completed_pomodoros INTEGER NOT NULL DEFAULT 0,
         is_completed INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        tag TEXT
       )
     ''');
     
@@ -72,6 +72,7 @@ class DatabaseHelper {
         start_time TEXT,
         end_time TEXT,
         created_at TEXT NOT NULL,
+        tag TEXT,
         FOREIGN KEY (task_id) REFERENCES $_tasksTable (id) ON DELETE SET NULL
       )
     ''');
@@ -101,29 +102,8 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_pomodoro_cycles_created_at ON $_pomodoroCyclesTable (created_at)');
   }
   
-  /// Upgrade database khi có thay đổi schema
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Migration từ version 1 lên 2: Thêm pomodoro_cycles table
-      await db.execute('''
-        CREATE TABLE $_pomodoroCyclesTable (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          start_time TEXT NOT NULL,
-          end_time TEXT,
-          completed_pomodoros INTEGER NOT NULL DEFAULT 0,
-          total_pomodoros INTEGER NOT NULL DEFAULT 4,
-          is_completed INTEGER NOT NULL DEFAULT 0,
-          session_ids TEXT NOT NULL DEFAULT '[]',
-          created_at TEXT NOT NULL
-        )
-      ''');
-      
-      // Thêm indexes cho pomodoro_cycles
-      await db.execute('CREATE INDEX idx_pomodoro_cycles_start_time ON $_pomodoroCyclesTable (start_time)');
-      await db.execute('CREATE INDEX idx_pomodoro_cycles_is_completed ON $_pomodoroCyclesTable (is_completed)');
-      await db.execute('CREATE INDEX idx_pomodoro_cycles_created_at ON $_pomodoroCyclesTable (created_at)');
-    }
-  }
+  /// Upgrade database không còn sử dụng (schema đã đầy đủ ngay từ onCreate)
+  // Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
   
   /// Đóng database connection
   Future<void> close() async {

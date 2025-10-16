@@ -12,12 +12,28 @@ import 'package:flutter/widgets.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/background.jpg
+  AssetGenImage get background =>
+      const AssetGenImage('assets/images/background.jpg');
+
   /// File path: assets/images/border_button.png
   AssetGenImage get borderButton =>
       const AssetGenImage('assets/images/border_button.png');
 
   /// File path: assets/images/duck.png
   AssetGenImage get duck => const AssetGenImage('assets/images/duck.png');
+
+  /// File path: assets/images/duck_focus.png
+  AssetGenImage get duckFocus =>
+      const AssetGenImage('assets/images/duck_focus.png');
+
+  /// File path: assets/images/duck_sport.png
+  AssetGenImage get duckSport =>
+      const AssetGenImage('assets/images/duck_sport.png');
+
+  /// File path: assets/images/duck_study.png
+  AssetGenImage get duckStudy =>
+      const AssetGenImage('assets/images/duck_study.png');
 
   /// File path: assets/images/duck_tag.png
   AssetGenImage get duckTag =>
@@ -39,8 +55,18 @@ class $AssetsImagesGen {
       const $AssetsImagesNavigationGen();
 
   /// List of all assets
-  List<AssetGenImage> get values =>
-      [borderButton, duck, duckTag, icCheck, icLeft, icRight];
+  List<AssetGenImage> get values => [
+        background,
+        borderButton,
+        duck,
+        duckFocus,
+        duckSport,
+        duckStudy,
+        duckTag,
+        icCheck,
+        icLeft,
+        icRight
+      ];
 }
 
 class $AssetsTranslationsGen {

@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
+// import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/common/extensions/router_extension.dart';
+import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 
-import '../../common/global_bloc/language/language_cubit.dart';
-import '../../generated/locale_keys.g.dart';
+// import '../../common/global_bloc/language/language_cubit.dart';
+// import '../../generated/locale_keys.g.dart';
 import 'home_cubit.dart';
+// import '../../core/local_storage/hive_data_manager.dart';
+// import '../../data/models/pomodoro_settings.dart';
+import '../../common/global_bloc/config_pomodoro/config_pomodoro_cubit.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HomeCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => HomeCubit()),
+        BlocProvider(create: (context) => ConfigPomodoroCubit()),
+      ],
       child: Scaffold(
+        extendBody: true,
         backgroundColor: Colors.white,
         // appBar: AppBar(
         //   title: Text(LocaleKeys.home.tr()),
@@ -54,86 +62,96 @@ class HomeScreen extends StatelessWidget {
           },
           child: BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {
-              if (state.isLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              final data = state.data;
-              if (data == null || data.isEmpty) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Assets.images.duck.image(
-                      width: 150,
-                      height: 150,
-                    ),
-                  ],
-                );
-              }
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Assets.images.duck.image(
-                    width: 150,
-                    height: 150,
+              return Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    alignment: Alignment.bottomCenter,
+                    image: Assets.images.background.image().image,
+                    fit: BoxFit.contain,
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                ),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Assets.images.duckTag.image(
-                        width: 25,
-                        height: 25,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
                       const Text(
-                        '25:00',
+                        'Pomo Duck',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Assets.images.icRight.image(
-                        width: 20,
-                        height: 20,
-                        fit: BoxFit.contain,
+                      50.height,
+                      Assets.images.duck.image(
+                        width: 300,
+                        height: 300,
                       ),
+                      10.height,
+                      // Show config of pomodoro app
+                      InkWell(
+                        onTap: () async {
+                          await _showPomodoroSettingsSheet(context);
+                        },
+                        child: BlocBuilder<ConfigPomodoroCubit,
+                            ConfigPomodoroState>(
+                          builder: (context, state) {
+                            final s = state.settings;
+                            final mm = (s.workDuration ~/ 60)
+                                .toString()
+                                .padLeft(2, '0');
+                            final ss = (s.workDuration % 60)
+                                .toString()
+                                .padLeft(2, '0');
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Assets.images.duckTag.image(
+                                  width: 25,
+                                  height: 25,
+                                  fit: BoxFit.contain,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  '$mm:$ss',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                Assets.images.icRight.image(
+                                  width: 20,
+                                  height: 20,
+                                  fit: BoxFit.contain,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      30.height,
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            context.goWithLastPath('pomodoro');
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Assets.images.borderButton.image(
+                                width: 400,
+                                height: 50,
+                              ),
+                              const Text(
+                                'Start',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
                     ],
                   ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        print('Start button tapped');
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Assets.images.borderButton.image(
-                            width: 400,
-                            height: 50,
-                          ),
-                          const Text(
-                            'Start',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
+                ),
               );
             },
           ),
@@ -141,4 +159,149 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
+  await showModalBottomSheet(
+    useRootNavigator: true,
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (ctx, setState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Pomodoro Settings',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  16.height,
+                  BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
+                    builder: (context, state) {
+                      final s = state.settings;
+
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Tag'),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final tag in state.tags)
+                                ChoiceChip(
+                                  label: Text(tag),
+                                  selected: state.selectedTag == tag,
+                                  onSelected: (_) =>
+                                      context.read<ConfigPomodoroCubit>().selectTag(tag),
+                                ),
+                              ActionChip(
+                                label: const Text('+ Add tag'),
+                                onPressed: () async {
+                                  final controller = TextEditingController();
+                                  await showDialog(
+                                    context: context,
+                                    builder: (dCtx) {
+                                      return AlertDialog(
+                                        title: const Text('Add new tag'),
+                                        content: TextField(
+                                          controller: controller,
+                                          decoration: const InputDecoration(
+                                            hintText: 'Enter tag name',
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(dCtx).pop(),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              context
+                                                  .read<ConfigPomodoroCubit>()
+                                                  .addTag(controller.text);
+                                              Navigator.of(dCtx).pop();
+                                            },
+                                            child: const Text('Add'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const Text('Work Duration (minutes)'),
+                          Slider(
+                            value: (s.workDuration / 60).clamp(5.0, 200.0),
+                            min: 5,
+                            max: 200,
+                            divisions: 39,
+                            label: (s.workDuration / 60).round().toString(),
+                            onChanged: (value) {
+                              context
+                                  .read<ConfigPomodoroCubit>()
+                                  .updateWorkMinutes(value.round());
+                            },
+                            activeColor: Colors.black,
+                            inactiveColor: Colors.grey,
+                            secondaryActiveColor: Colors.black,
+                          ),
+                          const Text('Short Break Duration (minutes)'),
+                          Slider(
+                            value: (s.shortBreakDuration / 60).clamp(1.0, 30.0),
+                            min: 1,
+                            max: 30,
+                            divisions: 29,
+                            label: (s.shortBreakDuration / 60).round().toString(),
+                            onChanged: (value) {
+                              context.read<ConfigPomodoroCubit>().updateShortBreakMinutes(value.round());
+                            },
+                            activeColor: Colors.black,
+                            inactiveColor: Colors.grey,
+                            secondaryActiveColor: Colors.black,
+                          ),
+                          const Text('Long Break Duration (minutes)'),
+                          Slider(
+                            value: (s.longBreakDuration / 60).clamp(5.0, 60.0),
+                            min: 5,
+                            max: 60,
+                            divisions: 11,
+                            label: (s.longBreakDuration / 60).round().toString(),
+                            onChanged: (value) {
+                              context.read<ConfigPomodoroCubit>().updateLongBreakMinutes(value.round());
+                            },
+                            activeColor: Colors.black,
+                            inactiveColor: Colors.grey,
+                            secondaryActiveColor: Colors.black,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }

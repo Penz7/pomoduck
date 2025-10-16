@@ -191,6 +191,33 @@ class HiveDataManager {
     await _cacheBox.put(key, data);
   }
 
+  // ===== Pomodoro Tags Persistence =====
+  static List<String> getPomodoroTags() {
+    final data = getCachedData('pomodoro_tags');
+    if (data != null) {
+      final list = List<String>.from(data['tags'] ?? <String>[]);
+      if (list.isNotEmpty) return list;
+    }
+    // default tags
+    return const ['sport', 'study', 'focus', 'work', 'practice', 'muse'];
+  }
+
+  static Future<void> savePomodoroTags(List<String> tags) async {
+    await saveCachedData('pomodoro_tags', {'tags': tags});
+  }
+
+  static String getSelectedPomodoroTag() {
+    final prefs = getUserPreferences();
+    // Nếu chưa có, dùng 'focus' làm mặc định
+    return (prefs.defaultTaskCategory.isEmpty || prefs.defaultTaskCategory == 'general')
+        ? 'focus'
+        : prefs.defaultTaskCategory;
+  }
+
+  static Future<void> saveSelectedPomodoroTag(String tag) async {
+    await updatePreference(defaultTaskCategory: tag);
+  }
+
   /// Get recent tasks cache
   static List<Map>? getRecentTasks() {
     final data = getCachedData('recent_tasks');

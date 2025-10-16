@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pomo_duck/app/router/app_router.dart';
+import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cubit.dart';
 
 import '../common/global_bloc/app/app_cubit.dart';
 import '../common/global_bloc/language/language_cubit.dart';
@@ -46,6 +47,9 @@ class _AppState extends State<App> {
           ),
           BlocProvider(
             create: (_) => AppCubit(),
+          ),
+          BlocProvider(
+            create: (_) => ConfigPomodoroCubit(),
           ),
           // BlocProvider(
           //   create: (_) => NotificationNumberCubit(),

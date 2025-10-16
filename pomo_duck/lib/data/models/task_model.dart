@@ -9,6 +9,7 @@ class TaskModel {
   final bool isCompleted;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? tag; // phân loại task: sport, study, focus, ...
 
   const TaskModel({
     this.id,
@@ -19,6 +20,7 @@ class TaskModel {
     this.isCompleted = false,
     required this.createdAt,
     required this.updatedAt,
+    this.tag,
   });
 
   /// Tạo TaskModel từ Map (từ database)
@@ -32,6 +34,7 @@ class TaskModel {
       isCompleted: (map['is_completed'] as int) == 1,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
+      tag: map['tag'] as String?,
     );
   }
 
@@ -46,6 +49,7 @@ class TaskModel {
       'is_completed': isCompleted ? 1 : 0,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'tag': tag,
     };
   }
 
@@ -59,6 +63,7 @@ class TaskModel {
     bool? isCompleted,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? tag,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -69,12 +74,13 @@ class TaskModel {
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      tag: tag ?? this.tag,
     );
   }
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, title: $title, description: $description, estimatedPomodoros: $estimatedPomodoros, completedPomodoros: $completedPomodoros, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'TaskModel(id: $id, title: $title, description: $description, estimatedPomodoros: $estimatedPomodoros, completedPomodoros: $completedPomodoros, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt, tag: $tag)';
   }
 
   @override
@@ -88,7 +94,8 @@ class TaskModel {
         other.completedPomodoros == completedPomodoros &&
         other.isCompleted == isCompleted &&
         other.createdAt == createdAt &&
-        other.updatedAt == updatedAt;
+        other.updatedAt == updatedAt &&
+        other.tag == tag;
   }
 
   @override
@@ -100,6 +107,7 @@ class TaskModel {
         completedPomodoros.hashCode ^
         isCompleted.hashCode ^
         createdAt.hashCode ^
-        updatedAt.hashCode;
+        updatedAt.hashCode ^
+        tag.hashCode;
   }
 }
