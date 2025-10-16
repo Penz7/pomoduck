@@ -31,7 +31,23 @@ class HybridDataCoordinator {
     
     // 2. Determine session type
     final currentState = HiveDataManager.getCurrentTimerState();
-    final actualSessionType = sessionType ?? currentState.nextSessionType; // camelCase for settings/hive
+    String actualSessionType;
+    if (sessionType != null) {
+      actualSessionType = sessionType; // caller decides
+    } else {
+      // Auto decide next type based on current state, cycle and settings
+      // If currently in a break or idle → next is work
+      if (currentState.sessionType != 'work') {
+        actualSessionType = 'work';
+      } else {
+        // Coming from work → decide short/long break
+        final interval = settings.longBreakDuration > 0 ? settings.longBreakInterval : 4;
+        PomodoroCycleModel? activeCycle = await getActiveCycle();
+        final completedWorks = activeCycle?.completedPomodoros ?? currentState.completedPomodoros;
+        final willBeLong = completedWorks > 0 && (completedWorks % (interval == 0 ? 4 : interval) == 0);
+        actualSessionType = willBeLong ? 'longBreak' : 'shortBreak';
+      }
+    }
     // map to DB enum string
     String dbSessionTypeStr;
     switch (actualSessionType) {
@@ -252,9 +268,11 @@ class HybridDataCoordinator {
 
   /// Start new pomodoro cycle
   Future<PomodoroCycleModel> startNewCycle() async {
+    final settings = HiveDataManager.getSettings();
     final cycle = PomodoroCycleModel(
       startTime: DateTime.now(),
       createdAt: DateTime.now(),
+      totalPomodoros: settings.longBreakInterval,
     );
     final cycleId = await DatabaseHelper.instance.insertPomodoroCycle(cycle);
     return cycle.copyWith(id: cycleId);

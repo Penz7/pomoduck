@@ -82,6 +82,13 @@ class PomodoroCubit extends Cubit<PomodoroState> {
 
   Future<void> stop() async {
     await HybridDataCoordinator.instance.stopSession();
+    // Reset cycle (complete and clear Hive state)
+    try {
+      final active = await HybridDataCoordinator.instance.getActiveCycle();
+      if (active != null && active.id != null) {
+        await HybridDataCoordinator.instance.completeCycle(active.id!);
+      }
+    } catch (_) {}
     _ticker?.cancel();
   }
 

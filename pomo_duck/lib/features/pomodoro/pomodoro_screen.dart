@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/features/pomodoro/pomodoro_cubit.dart';
+import 'package:pomo_duck/core/data_coordinator/hybrid_data_coordinator.dart';
+import 'package:pomo_duck/data/models/pomodoro_cycle_model.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 
 class PomodoroScreen extends StatelessWidget {
@@ -50,6 +52,20 @@ class PomodoroScreen extends StatelessWidget {
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                         ),
+                      ),
+                      4.height,
+                      FutureBuilder<PomodoroCycleModel?>(
+                        future: HybridDataCoordinator.instance.getActiveCycle(),
+                        builder: (context, AsyncSnapshot<PomodoroCycleModel?> snapshot) {
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return const SizedBox.shrink();
+                          }
+                          final PomodoroCycleModel cycle = snapshot.data!;
+                          return Text(
+                            '${cycle.completedPomodoros}/${cycle.totalPomodoros} Pomodoro',
+                            style: const TextStyle(fontSize: 14, color: Colors.black54),
+                          );
+                        },
                       ),
                       6.height,
                       Text(
