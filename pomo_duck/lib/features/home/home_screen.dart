@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/common/extensions/router_extension.dart';
+import 'package:pomo_duck/generated/assets/assets.gen.dart';
 
 import '../../common/global_bloc/language/language_cubit.dart';
 import '../../generated/locale_keys.g.dart';
@@ -16,30 +17,30 @@ class HomeScreen extends StatelessWidget {
       create: (context) => HomeCubit(),
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text(LocaleKeys.home.tr()),
-          actions: [
-            // Timer button
-            IconButton(
-              icon: const Icon(Icons.timer),
-              onPressed: () {
-                context.goWithPath('/settings');
-              },
-            ),
-            // Add button change language
-            IconButton(
-              icon: const Icon(Icons.language),
-              onPressed: () {
-                final current = context.read<LanguageCubit>().state.locale;
-                final next = current.languageCode == 'vi'
-                    ? const Locale('en', 'US')
-                    : const Locale('vi', 'VN');
-                context.setLocale(next);
-                context.read<LanguageCubit>().setNewLanguage(next);
-              },
-            ),
-          ],
-        ),
+        // appBar: AppBar(
+        //   title: Text(LocaleKeys.home.tr()),
+        //   actions: [
+        //     // Timer button
+        //     IconButton(
+        //       icon: const Icon(Icons.timer),
+        //       onPressed: () {
+        //         context.goWithPath('/settings');
+        //       },
+        //     ),
+        //     // Add button change language
+        //     IconButton(
+        //       icon: const Icon(Icons.language),
+        //       onPressed: () {
+        //         final current = context.read<LanguageCubit>().state.locale;
+        //         final next = current.languageCode == 'vi'
+        //             ? const Locale('en', 'US')
+        //             : const Locale('vi', 'VN');
+        //         context.setLocale(next);
+        //         context.read<LanguageCubit>().setNewLanguage(next);
+        //       },
+        //     ),
+        //   ],
+        // ),
         body: BlocListener<HomeCubit, HomeState>(
           listener: (context, state) {
             if (state.isError && state.message != null) {
@@ -53,126 +54,87 @@ class HomeScreen extends StatelessWidget {
           },
           child: BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {
-            if (state.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            
-            final data = state.data;
-            if (data == null || data.isEmpty) {
+              if (state.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              final data = state.data;
+              if (data == null || data.isEmpty) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Assets.images.duck.image(
+                      width: 150,
+                      height: 150,
+                    ),
+                  ],
+                );
+              }
+
               return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('PomoDuck - SQLite Database Test'),
-                  const SizedBox(height: 20),
-                  
-                  // Database test section
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Database Status:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade800,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text('Total Tasks: ${data?.length ?? 0}'),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<HomeCubit>().addTestTask();
-                          },
-                          child: const Text('Add Test Task'),
-                        ),
-                      ],
-                    ),
+                  Assets.images.duck.image(
+                    width: 150,
+                    height: 150,
                   ),
-                  
-                  const Expanded(
-                    child: Center(
-                      child: Text('No tasks found. Add a test task!'),
-                    ),
+                  const SizedBox(
+                    height: 10,
                   ),
-                ],
-              );
-            }
-            
-            return Column(
-              children: [
-                const Text('PomoDuck - SQLite Database Test'),
-                const SizedBox(height: 20),
-                
-                // Database test section
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Database Status:',
+                      Assets.images.duckTag.image(
+                        width: 25,
+                        height: 25,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Text(
+                        '25:00',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade800,
+                          fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text('Total Tasks: ${data.length}'),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<HomeCubit>().addTestTask();
-                        },
-                        child: const Text('Add Test Task'),
+                      Assets.images.icRight.image(
+                        width: 20,
+                        height: 20,
+                        fit: BoxFit.contain,
                       ),
                     ],
                   ),
-                ),
-                
-                // Tasks list
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () => context.read<HomeCubit>().refreshTasks(),
-                    child: ListView.builder(
-                      itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        final task = data[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        print('Start button tapped');
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Assets.images.borderButton.image(
+                            width: 400,
+                            height: 50,
                           ),
-                          child: ListTile(
-                            title: Text(task.title),
-                            subtitle: Text(task.description),
-                            trailing: Text(
-                              '${task.completedPomodoros}/${task.estimatedPomodoros}',
+                          const Text(
+                            'Start',
+                            style: TextStyle(
+                              fontSize: 16,
                             ),
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            );
+                  )
+                ],
+              );
             },
           ),
         ),

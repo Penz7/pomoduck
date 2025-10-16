@@ -73,7 +73,10 @@ class _AppState extends State<App> {
                 appBarTheme: const AppBarTheme(
                   surfaceTintColor: Colors.white,
                 ),
-                textTheme: GoogleFonts.quicksandTextTheme(),
+                // fontFamily: 'Biscuit Glitch',
+                textTheme: GoogleFonts.dynaPuffTextTheme(
+                  Theme.of(context).textTheme,
+                ),
                 textSelectionTheme: const TextSelectionThemeData(
                   cursorColor: UIColors.textColor,
                 ),

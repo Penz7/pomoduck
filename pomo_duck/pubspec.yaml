@@ -56,6 +56,7 @@ flutter:
     - assets/images/navigation/
     - assets/translations/
 
+
 flutter_gen:
   output: lib/generated/assets
 
@@ -70,3 +71,4 @@ flutter_gen:
       enabled: true
       style: dot-delimiter
       package_parameter_enabled: false
+

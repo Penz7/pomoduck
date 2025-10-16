@@ -62,16 +62,16 @@ class _MainTabBarState extends State<MainTabBarScreen> {
         ),
         decoration: BoxDecoration(
           color: UIColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: UIColors.black.withOpacity(0.15),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-            ),
-          ],
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: UIColors.black.withOpacity(0.15),
+          //     offset: const Offset(0, 2),
+          //     blurRadius: 8,
+          //   ),
+          // ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -121,15 +121,11 @@ class _MainTabBarState extends State<MainTabBarScreen> {
                 SizedBox(
                   width: 80,
                   child: Image.asset(
-                    'assets/images/navigation/$image.png',
-                    // selected
-                    //     ? 'assets/images/navigation/${image}_active.png'
-                    //     : 'assets/images/navigation/$image.png',
-                    width: 24,
-                    height: 24,
-                    color: selected
-                        ? (appTheme.color ?? UIColors.primaryColor)
-                        : null,
+                    selected
+                        ? 'assets/images/navigation/${image}_active.png'
+                        : 'assets/images/navigation/$image.png',
+                    width: 30,
+                    height: 30,
                   ),
                 ),
                 if (appTheme != ThemeEnum.normal && selected)
