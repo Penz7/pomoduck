@@ -50,7 +50,6 @@ class DatabaseHelper {
       CREATE TABLE $_tasksTable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
-        description TEXT NOT NULL,
         estimated_pomodoros INTEGER NOT NULL DEFAULT 1,
         completed_pomodoros INTEGER NOT NULL DEFAULT 0,
         is_completed INTEGER NOT NULL DEFAULT 0,

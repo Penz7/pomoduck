@@ -3,7 +3,6 @@
 class TaskModel {
   final int? id;
   final String title;
-  final String description;
   final int estimatedPomodoros;
   final int completedPomodoros;
   final bool isCompleted;
@@ -14,7 +13,6 @@ class TaskModel {
   const TaskModel({
     this.id,
     required this.title,
-    required this.description,
     required this.estimatedPomodoros,
     this.completedPomodoros = 0,
     this.isCompleted = false,
@@ -28,7 +26,6 @@ class TaskModel {
     return TaskModel(
       id: map['id'] as int?,
       title: map['title'] as String,
-      description: map['description'] as String,
       estimatedPomodoros: map['estimated_pomodoros'] as int,
       completedPomodoros: map['completed_pomodoros'] as int,
       isCompleted: (map['is_completed'] as int) == 1,
@@ -43,7 +40,6 @@ class TaskModel {
     return {
       'id': id,
       'title': title,
-      'description': description,
       'estimated_pomodoros': estimatedPomodoros,
       'completed_pomodoros': completedPomodoros,
       'is_completed': isCompleted ? 1 : 0,
@@ -57,7 +53,6 @@ class TaskModel {
   TaskModel copyWith({
     int? id,
     String? title,
-    String? description,
     int? estimatedPomodoros,
     int? completedPomodoros,
     bool? isCompleted,
@@ -68,7 +63,6 @@ class TaskModel {
     return TaskModel(
       id: id ?? this.id,
       title: title ?? this.title,
-      description: description ?? this.description,
       estimatedPomodoros: estimatedPomodoros ?? this.estimatedPomodoros,
       completedPomodoros: completedPomodoros ?? this.completedPomodoros,
       isCompleted: isCompleted ?? this.isCompleted,
@@ -80,7 +74,7 @@ class TaskModel {
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, title: $title, description: $description, estimatedPomodoros: $estimatedPomodoros, completedPomodoros: $completedPomodoros, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt, tag: $tag)';
+    return 'TaskModel(id: $id, title: $title, estimatedPomodoros: $estimatedPomodoros, completedPomodoros: $completedPomodoros, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt, tag: $tag)';
   }
 
   @override
@@ -89,7 +83,6 @@ class TaskModel {
     return other is TaskModel &&
         other.id == id &&
         other.title == title &&
-        other.description == description &&
         other.estimatedPomodoros == estimatedPomodoros &&
         other.completedPomodoros == completedPomodoros &&
         other.isCompleted == isCompleted &&
@@ -102,7 +95,6 @@ class TaskModel {
   int get hashCode {
     return id.hashCode ^
         title.hashCode ^
-        description.hashCode ^
         estimatedPomodoros.hashCode ^
         completedPomodoros.hashCode ^
         isCompleted.hashCode ^
