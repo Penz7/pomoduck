@@ -9,4 +9,5 @@ class UIColors {
   static const Color errorColor = Color(0xFFB00020);
 
   static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
 }
