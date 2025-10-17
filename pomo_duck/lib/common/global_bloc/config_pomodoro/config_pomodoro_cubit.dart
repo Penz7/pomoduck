@@ -81,10 +81,6 @@ class ConfigPomodoroCubit extends Cubit<ConfigPomodoroState> {
     await HiveDataManager.updateSetting(vibrationEnabled: value);
   }
 
-  Future<void> setTheme(String theme) async {
-    await HiveDataManager.updateSetting(theme: theme);
-  }
-
   Future<void> resetDefaults() async {
     await HiveDataManager.saveSettings(PomodoroSettings());
   }

@@ -48,7 +48,6 @@ class HiveDataManager {
     bool? soundEnabled,
     String? notificationSound,
     bool? vibrationEnabled,
-    String? theme,
   }) async {
     final currentSettings = getSettings();
     final updatedSettings = currentSettings.copyWith(
@@ -61,7 +60,6 @@ class HiveDataManager {
       soundEnabled: soundEnabled,
       notificationSound: notificationSound,
       vibrationEnabled: vibrationEnabled,
-      theme: theme,
     );
     await saveSettings(updatedSettings);
   }
