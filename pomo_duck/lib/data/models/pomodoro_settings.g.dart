@@ -21,8 +21,8 @@ class PomodoroSettingsAdapter extends TypeAdapter<PomodoroSettings> {
       shortBreakDuration: fields[1] as int,
       longBreakDuration: fields[2] as int,
       longBreakInterval: fields[3] as int,
-      autoStartBreaks: fields[4] as bool,
-      autoStartPomodoros: fields[5] as bool,
+      pomodoroCycleCount: fields[4] as int,
+      isStandardMode: fields[5] as bool,
       soundEnabled: fields[6] as bool,
       notificationSound: fields[7] as String,
       vibrationEnabled: fields[8] as bool,
@@ -43,9 +43,9 @@ class PomodoroSettingsAdapter extends TypeAdapter<PomodoroSettings> {
       ..writeByte(3)
       ..write(obj.longBreakInterval)
       ..writeByte(4)
-      ..write(obj.autoStartBreaks)
+      ..write(obj.pomodoroCycleCount)
       ..writeByte(5)
-      ..write(obj.autoStartPomodoros)
+      ..write(obj.isStandardMode)
       ..writeByte(6)
       ..write(obj.soundEnabled)
       ..writeByte(7)

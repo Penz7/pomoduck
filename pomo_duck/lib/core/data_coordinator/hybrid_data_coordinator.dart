@@ -41,10 +41,10 @@ class HybridDataCoordinator {
         actualSessionType = 'work';
       } else {
         // Coming from work → decide short/long break
-        final interval = settings.longBreakDuration > 0 ? settings.longBreakInterval : 4;
         PomodoroCycleModel? activeCycle = await getActiveCycle();
         final completedWorks = activeCycle?.completedPomodoros ?? currentState.completedPomodoros;
-        final willBeLong = completedWorks > 0 && (completedWorks % (interval == 0 ? 4 : interval) == 0);
+        final effectiveInterval = settings.isStandardMode ? 4 : settings.longBreakInterval;
+        final willBeLong = completedWorks > 0 && completedWorks % effectiveInterval == 0;
         actualSessionType = willBeLong ? 'longBreak' : 'shortBreak';
       }
     }
@@ -61,8 +61,10 @@ class HybridDataCoordinator {
         dbSessionTypeStr = 'work';
     }
     
-    // 3. Get duration from settings
-    final plannedDuration = settings.getDurationForSessionType(actualSessionType);
+    // 3. Get duration from settings (use effective values for Standard Mode)
+    final plannedDuration = settings.isStandardMode 
+        ? settings.standardPomodoroSettings.getDurationForSessionType(actualSessionType)
+        : settings.getDurationForSessionType(actualSessionType);
     
     // 4. Create session in SQLite
     final session = SessionModel(
@@ -96,6 +98,11 @@ class HybridDataCoordinator {
       sessionId: sessionId,
     );
     
+    // 6. Update task status to active if it's a work session
+    if (taskId != null && dbSessionTypeStr == 'work') {
+      await _updateTaskStatusToActive(taskId);
+    }
+    
     return createdSession;
   }
 
@@ -123,13 +130,23 @@ class HybridDataCoordinator {
         // 2. Update task if it's a work session
         if (currentState.sessionType == 'work' && currentState.taskId != null) {
           await DatabaseHelper.instance.incrementCompletedPomodoros(currentState.taskId!);
-          // 2.1 Update active cycle's completedPomodoros and complete cycle if needed
+          
+          // 2.1 Check if cycle is complete and auto-complete task
           try {
             final activeCycle = await getActiveCycle();
             if (activeCycle != null && activeCycle.id != null) {
               final incremented = await incrementCyclePomodoros(activeCycle.id!);
-              if (incremented.isCompleted) {
+              
+              // Check if total pomodoro sessions is complete
+              final settings = HiveDataManager.getSettings();
+              final effectiveCycleCount = settings.isStandardMode ? 4 : settings.pomodoroCycleCount;
+              if (incremented.completedPomodoros >= effectiveCycleCount) {
                 await completeCycle(incremented.id!);
+                
+                // Auto-complete task if all pomodoro sessions are done
+                if (currentState.taskId != null) {
+                  await _completeTask(currentState.taskId!);
+                }
               }
             }
           } catch (_) {}
@@ -269,10 +286,11 @@ class HybridDataCoordinator {
   /// Start new pomodoro cycle
   Future<PomodoroCycleModel> startNewCycle() async {
     final settings = HiveDataManager.getSettings();
+    final effectiveCycleCount = settings.isStandardMode ? 4 : settings.pomodoroCycleCount;
     final cycle = PomodoroCycleModel(
       startTime: DateTime.now(),
       createdAt: DateTime.now(),
-      totalPomodoros: settings.longBreakInterval,
+      totalPomodoros: effectiveCycleCount,
     );
     final cycleId = await DatabaseHelper.instance.insertPomodoroCycle(cycle);
     return cycle.copyWith(id: cycleId);
@@ -321,6 +339,38 @@ class HybridDataCoordinator {
   /// Get today's cycles
   Future<List<PomodoroCycleModel>> getTodayCycles() async {
     return await DatabaseHelper.instance.getTodayPomodoroCycles();
+  }
+
+  /// Update task status to active (internal method)
+  Future<void> _updateTaskStatusToActive(int taskId) async {
+    try {
+      final task = await DatabaseHelper.instance.getTaskById(taskId);
+      if (task != null) {
+        // Mark task as active by updating updatedAt timestamp
+        final updatedTask = task.copyWith(updatedAt: DateTime.now());
+        await DatabaseHelper.instance.updateTask(updatedTask);
+      }
+    } catch (e) {
+      // Log error but don't throw to avoid breaking session start
+      print('Error updating task status to active: $e');
+    }
+  }
+
+  /// Complete task when cycle is finished (internal method)
+  Future<void> _completeTask(int taskId) async {
+    try {
+      final task = await DatabaseHelper.instance.getTaskById(taskId);
+      if (task != null) {
+        final completedTask = task.copyWith(
+          isCompleted: true,
+          updatedAt: DateTime.now(),
+        );
+        await DatabaseHelper.instance.updateTask(completedTask);
+      }
+    } catch (e) {
+      // Log error but don't throw to avoid breaking session completion
+      print('Error completing task: $e');
+    }
   }
 
   // ==================== SETTINGS OPERATIONS ====================

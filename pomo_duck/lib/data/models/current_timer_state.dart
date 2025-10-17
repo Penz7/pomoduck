@@ -110,14 +110,16 @@ class CurrentTimerState extends HiveObject {
   }
 
   /// Getter để check xem có nên chuyển sang long break không
-  bool get shouldTakeLongBreak {
-    return completedPomodoros > 0 && completedPomodoros % 4 == 0;
+  /// Note: This should be checked against settings.longBreakInterval, not hardcoded
+  bool shouldTakeLongBreak(int longBreakInterval) {
+    return completedPomodoros > 0 && completedPomodoros % longBreakInterval == 0;
   }
 
   /// Getter để lấy session type tiếp theo
-  String get nextSessionType {
+  /// Note: This should use settings.longBreakInterval, not hardcoded
+  String getNextSessionType(int longBreakInterval) {
     if (sessionType == 'work') {
-      return shouldTakeLongBreak ? 'longBreak' : 'shortBreak';
+      return shouldTakeLongBreak(longBreakInterval) ? 'longBreak' : 'shortBreak';
     } else {
       return 'work';
     }

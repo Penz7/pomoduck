@@ -18,10 +18,10 @@ class PomodoroSettings extends HiveObject {
   final int longBreakInterval; // Sau bao nhiêu pomodoro thì long break
 
   @HiveField(4)
-  final bool autoStartBreaks; // Tự động bắt đầu break
+  final int pomodoroCycleCount; // Tổng số pomodoro sessions cần hoàn thành (1-10)
 
   @HiveField(5)
-  final bool autoStartPomodoros; // Tự động bắt đầu pomodoro tiếp theo
+  final bool isStandardMode; // true = Standard Pomodoro, false = Custom Mode
 
   @HiveField(6)
   final bool soundEnabled; // Bật/tắt âm thanh
@@ -40,8 +40,8 @@ class PomodoroSettings extends HiveObject {
     this.shortBreakDuration = 300, // 5 phút
     this.longBreakDuration = 900, // 15 phút
     this.longBreakInterval = 4,
-    this.autoStartBreaks = false,
-    this.autoStartPomodoros = false,
+    this.pomodoroCycleCount = 4, // 4 pomodoro sessions cần hoàn thành
+    this.isStandardMode = true, // Default: Standard Pomodoro
     this.soundEnabled = true,
     this.notificationSound = 'default',
     this.vibrationEnabled = true,
@@ -54,8 +54,8 @@ class PomodoroSettings extends HiveObject {
     int? shortBreakDuration,
     int? longBreakDuration,
     int? longBreakInterval,
-    bool? autoStartBreaks,
-    bool? autoStartPomodoros,
+    int? pomodoroCycleCount,
+    bool? isStandardMode,
     bool? soundEnabled,
     String? notificationSound,
     bool? vibrationEnabled,
@@ -66,8 +66,8 @@ class PomodoroSettings extends HiveObject {
       shortBreakDuration: shortBreakDuration ?? this.shortBreakDuration,
       longBreakDuration: longBreakDuration ?? this.longBreakDuration,
       longBreakInterval: longBreakInterval ?? this.longBreakInterval,
-      autoStartBreaks: autoStartBreaks ?? this.autoStartBreaks,
-      autoStartPomodoros: autoStartPomodoros ?? this.autoStartPomodoros,
+      pomodoroCycleCount: pomodoroCycleCount ?? this.pomodoroCycleCount,
+      isStandardMode: isStandardMode ?? this.isStandardMode,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       notificationSound: notificationSound ?? this.notificationSound,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
@@ -89,19 +89,66 @@ class PomodoroSettings extends HiveObject {
     }
   }
 
-  /// Getter để check xem có nên auto-start không
+  /// Getter để check xem có nên auto-start không (luôn false vì bỏ auto start)
   bool shouldAutoStart(String sessionType) {
-    if (sessionType == 'work') {
-      return autoStartPomodoros;
-    } else if (sessionType == 'shortBreak' || sessionType == 'longBreak') {
-      return autoStartBreaks;
-    }
-    return false;
+    return false; // Không auto start nữa
+  }
+
+  /// Getter để check xem có nên long break không
+  bool shouldTakeLongBreak(int completedPomodoros) {
+    return completedPomodoros > 0 && completedPomodoros % longBreakInterval == 0;
+  }
+
+  /// Getter để check xem cycle có hoàn thành không
+  bool isCycleComplete(int completedPomodoros) {
+    return completedPomodoros >= pomodoroCycleCount;
+  }
+
+  /// Getter để lấy giá trị Standard Pomodoro (theo chuẩn Francesco Cirillo)
+  PomodoroSettings get standardPomodoroSettings {
+    return PomodoroSettings(
+      workDuration: 1500, // 25 phút
+      shortBreakDuration: 300, // 5 phút
+      longBreakDuration: 900, // 15 phút
+      longBreakInterval: 4, // Long break sau 4 pomodoros
+      pomodoroCycleCount: 4, // 4 pomodoros per cycle
+      isStandardMode: true,
+      soundEnabled: soundEnabled,
+      notificationSound: notificationSound,
+      vibrationEnabled: vibrationEnabled,
+      theme: theme,
+    );
+  }
+
+  /// Getter để check xem có đang ở Standard Mode không
+  bool get isStandardPomodoro {
+    return isStandardMode;
+  }
+
+  /// Getter để lấy effective values (Standard hoặc Custom)
+  int get effectiveWorkDuration {
+    return isStandardMode ? 1500 : workDuration;
+  }
+
+  int get effectiveShortBreakDuration {
+    return isStandardMode ? 300 : shortBreakDuration;
+  }
+
+  int get effectiveLongBreakDuration {
+    return isStandardMode ? 900 : longBreakDuration;
+  }
+
+  int get effectiveLongBreakInterval {
+    return isStandardMode ? 4 : longBreakInterval;
+  }
+
+  int get effectivePomodoroCycleCount {
+    return isStandardMode ? 4 : pomodoroCycleCount;
   }
 
   @override
   String toString() {
-    return 'PomodoroSettings(workDuration: $workDuration, shortBreakDuration: $shortBreakDuration, longBreakDuration: $longBreakDuration, longBreakInterval: $longBreakInterval, autoStartBreaks: $autoStartBreaks, autoStartPomodoros: $autoStartPomodoros, soundEnabled: $soundEnabled, notificationSound: $notificationSound, vibrationEnabled: $vibrationEnabled, theme: $theme)';
+    return 'PomodoroSettings(workDuration: $workDuration, shortBreakDuration: $shortBreakDuration, longBreakDuration: $longBreakDuration, longBreakInterval: $longBreakInterval, pomodoroCycleCount: $pomodoroCycleCount, isStandardMode: $isStandardMode, soundEnabled: $soundEnabled, notificationSound: $notificationSound, vibrationEnabled: $vibrationEnabled, theme: $theme)';
   }
 
   @override
@@ -112,8 +159,8 @@ class PomodoroSettings extends HiveObject {
         other.shortBreakDuration == shortBreakDuration &&
         other.longBreakDuration == longBreakDuration &&
         other.longBreakInterval == longBreakInterval &&
-        other.autoStartBreaks == autoStartBreaks &&
-        other.autoStartPomodoros == autoStartPomodoros &&
+        other.pomodoroCycleCount == pomodoroCycleCount &&
+        other.isStandardMode == isStandardMode &&
         other.soundEnabled == soundEnabled &&
         other.notificationSound == notificationSound &&
         other.vibrationEnabled == vibrationEnabled &&
@@ -126,8 +173,8 @@ class PomodoroSettings extends HiveObject {
         shortBreakDuration.hashCode ^
         longBreakDuration.hashCode ^
         longBreakInterval.hashCode ^
-        autoStartBreaks.hashCode ^
-        autoStartPomodoros.hashCode ^
+        pomodoroCycleCount.hashCode ^
+        isStandardMode.hashCode ^
         soundEnabled.hashCode ^
         notificationSound.hashCode ^
         vibrationEnabled.hashCode ^

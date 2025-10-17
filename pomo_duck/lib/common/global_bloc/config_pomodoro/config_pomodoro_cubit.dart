@@ -50,12 +50,14 @@ class ConfigPomodoroCubit extends Cubit<ConfigPomodoroState> {
     }
   }
 
-  Future<void> setAutoStartPomodoros(bool value) async {
-    await HiveDataManager.updateSetting(autoStartPomodoros: value);
+  Future<void> updatePomodoroCycleCount(int count) async {
+    if (count > 0 && count <= 10) {
+      await HiveDataManager.updateSetting(pomodoroCycleCount: count);
+    }
   }
 
-  Future<void> setAutoStartBreaks(bool value) async {
-    await HiveDataManager.updateSetting(autoStartBreaks: value);
+  Future<void> setStandardMode(bool isStandard) async {
+    await HiveDataManager.updateSetting(isStandardMode: isStandard);
   }
 
   Future<void> setSoundEnabled(bool value) async {

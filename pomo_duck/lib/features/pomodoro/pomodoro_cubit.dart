@@ -44,15 +44,20 @@ class PomodoroCubit extends Cubit<PomodoroState> {
 
         if (updated.elapsedSeconds >= updated.plannedDurationSeconds) {
           await HybridDataCoordinator.instance.completeSession();
-          final settings = HiveDataManager.getSettings();
-          final nextType = updated.nextSessionType;
-          final shouldAuto = settings.shouldAutoStart(nextType);
-          if (shouldAuto) {
+          
+          // Auto start break nếu vừa hoàn thành work session
+          if (updated.sessionType == 'work') {
+            final settings = HiveDataManager.getSettings();
+            final effectiveInterval = settings.isStandardMode ? 4 : settings.longBreakInterval;
+            final nextType = updated.getNextSessionType(effectiveInterval);
+            
+            // Auto start break session
             await HybridDataCoordinator.instance.startPomodoroSession(
               taskId: updated.taskId,
               sessionType: nextType,
             );
           } else {
+            // Nếu là break session thì dừng timer
             _ticker?.cancel();
           }
         }

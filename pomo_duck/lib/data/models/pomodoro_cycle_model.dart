@@ -126,8 +126,9 @@ class PomodoroCycleModel {
   }
 
   /// Getter để check xem có nên take long break không
-  bool get shouldTakeLongBreak {
-    return completedPomodoros > 0 && completedPomodoros % 4 == 0;
+  /// Note: This should be checked against settings.longBreakInterval, not hardcoded
+  bool shouldTakeLongBreak(int longBreakInterval) {
+    return completedPomodoros > 0 && completedPomodoros % longBreakInterval == 0;
   }
 
   /// Getter để lấy số pomodoro còn lại
@@ -164,7 +165,7 @@ class PomodoroCycleModel {
   }
 
   /// Get cycle statistics
-  Map<String, dynamic> getStatistics() {
+  Map<String, dynamic> getStatistics(int longBreakInterval) {
     return {
       'id': id,
       'startTime': startTime.toIso8601String(),
@@ -176,7 +177,7 @@ class PomodoroCycleModel {
       'progressPercentage': progressPercentage,
       'cycleDuration': cycleDuration.inMinutes,
       'sessionCount': sessionIdList.length,
-      'shouldTakeLongBreak': shouldTakeLongBreak,
+      'shouldTakeLongBreak': shouldTakeLongBreak(longBreakInterval),
     };
   }
 
