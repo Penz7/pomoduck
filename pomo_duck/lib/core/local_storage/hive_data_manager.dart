@@ -199,7 +199,7 @@ class HiveDataManager {
       if (list.isNotEmpty) return list;
     }
     // default tags
-    return const ['sport', 'study', 'focus', 'work', 'practice', 'muse'];
+    return const ['sport', 'study', 'work', 'practice', 'focus'];
   }
 
   static Future<void> savePomodoroTags(List<String> tags) async {

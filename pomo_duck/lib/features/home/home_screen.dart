@@ -23,19 +23,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final GlobalKey<FormState> _startFormKey = GlobalKey<FormState>();
-  final TextEditingController _taskTitleCtrl = TextEditingController();
-  String _selectedStartTag = 'focus';
-
-  @override
-  void initState() {
-    super.initState();
-    try {
-      final cfg = context.read<ConfigPomodoroCubit>().state;
-      _selectedStartTag = cfg.selectedTag;
-    } catch (_) {}
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -117,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ConfigPomodoroState>(
                           builder: (context, state) {
                             final s = state.settings;
+                            final selectTag = state.selectedTag;
                             final mm = (s.workDuration ~/ 60)
                                 .toString()
                                 .padLeft(2, '0');
@@ -127,14 +115,25 @@ class _HomeScreenState extends State<HomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Assets.images.duckTag.image(
-                                  width: 25,
-                                  height: 25,
+                                  width: 30,
+                                  height: 30,
                                   fit: BoxFit.contain,
                                 ),
-                                const SizedBox(width: 10),
+                                10.width,
+                                Text(
+                                  selectTag,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                10.width,
                                 Text(
                                   '$mm:$ss',
-                                  style: const TextStyle(fontSize: 14),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                                 Assets.images.icRight.image(
                                   width: 20,
@@ -308,7 +307,6 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
 Future<void> _showStartTaskSheet(BuildContext context) async {
   final cfg = context.read<ConfigPomodoroCubit>().state;
   final settings = cfg.settings;
-  final tagList = cfg.tags;
   String selectedTag = cfg.selectedTag;
 
   final titleCtrl = TextEditingController();
@@ -323,155 +321,107 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
     builder: (ctx) {
-      return StatefulBuilder(
-        builder: (ctx, setState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+      return Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+        ),
+        child: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
+                    Assets.images.duckTag.image(
+                      width: 25,
+                      height: 25,
+                      fit: BoxFit.contain,
+                    ),
+                    10.width,
                     const Text(
-                      'Start Focus Session',
+                      'Start Session',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: titleCtrl,
-                      autofocus: true,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Task title',
-                        border: OutlineInputBorder(),
+                  ],
+                ),
+                16.height,
+                TextFormField(
+                  controller: titleCtrl,
+                  autofocus: true,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Task title',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) {
+                    final value = (v ?? '').trim();
+                    if (value.isEmpty) return 'Please enter task title';
+                    if (value.length > 100) {
+                      return 'Title is too long (max 100)';
+                    }
+                    return null;
+                  },
+                ),
+                20.height,
+                const Text('Durations'),
+                8.height,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _durationTile('Work', settings.workDuration),
+                    _durationTile('Short', settings.shortBreakDuration),
+                    _durationTile('Long', settings.longBreakDuration),
+                  ],
+                ),
+                20.height,
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cancel'),
                       ),
-                      validator: (v) {
-                        final value = (v ?? '').trim();
-                        if (value.isEmpty) return 'Please enter task title';
-                        if (value.length > 100) {
-                          return 'Title is too long (max 100)';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 16),
-                    const Text('Tag'),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final tag in tagList)
-                          ChoiceChip(
-                            label: Text(tag),
-                            selected: selectedTag == tag,
-                            onSelected: (_) =>
-                                setState(() => selectedTag = tag),
-                          ),
-                        ActionChip(
-                          label: const Text('+ Add tag'),
-                          onPressed: () async {
-                            final controller = TextEditingController();
-                            await showDialog(
-                              context: context,
-                              builder: (dCtx) {
-                                return AlertDialog(
-                                  title: const Text('Add new tag'),
-                                  content: TextField(
-                                    controller: controller,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Enter tag name',
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(dCtx).pop(),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        final t = controller.text.trim();
-                                        if (t.isNotEmpty) {
-                                          context
-                                              .read<ConfigPomodoroCubit>()
-                                              .addTag(t);
-                                          setState(() => selectedTag = t);
-                                        }
-                                        Navigator.of(dCtx).pop();
-                                      },
-                                      child: const Text('Add'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Durations'),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _durationTile('Work', settings.workDuration),
-                        _durationTile('Short', settings.shortBreakDuration),
-                        _durationTile('Long', settings.longBreakDuration),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(ctx).pop(),
-                            child: const Text('Cancel'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (!formKey.currentState!.validate()) return;
-                              final task = TaskModel(
-                                title: titleCtrl.text.trim(),
-                                estimatedPomodoros: 1,
-                                createdAt: DateTime.now(),
-                                updatedAt: DateTime.now(),
-                                tag: selectedTag,
-                              );
-                              final taskId = await DatabaseHelper.instance
-                                  .insertTask(task);
-                              await HybridDataCoordinator.instance
-                                  .startPomodoroSession(
-                                taskId: taskId,
-                                sessionType: 'work',
-                              );
-                              if (ctx.mounted) {
-                                Navigator.of(ctx).pop();
-                                ctx.goWithPath('/home/pomodoro');
-                              }
-                            },
-                            child: const Text('Start'),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (!formKey.currentState!.validate()) return;
+                          final task = TaskModel(
+                            title: titleCtrl.text.trim(),
+                            estimatedPomodoros: 1,
+                            createdAt: DateTime.now(),
+                            updatedAt: DateTime.now(),
+                            tag: selectedTag,
+                          );
+                          final taskId =
+                              await DatabaseHelper.instance.insertTask(task);
+                          await HybridDataCoordinator.instance
+                              .startPomodoroSession(
+                            taskId: taskId,
+                            sessionType: 'work',
+                          );
+                          if (ctx.mounted) {
+                            Navigator.of(ctx).pop();
+                            ctx.goWithPath('/home/pomodoro');
+                          }
+                        },
+                        child: const Text('Start'),
+                      ),
                     ),
                   ],
                 ),
-              ),
+                10.height,
+              ],
             ),
-          );
-        },
+          ),
+        ),
       );
     },
   );
