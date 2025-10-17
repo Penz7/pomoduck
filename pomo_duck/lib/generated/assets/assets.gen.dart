@@ -31,6 +31,10 @@ class $AssetsImagesGen {
   AssetGenImage get duckPause =>
       const AssetGenImage('assets/images/duck_pause.png');
 
+  /// File path: assets/images/duck_relax.png
+  AssetGenImage get duckRelax =>
+      const AssetGenImage('assets/images/duck_relax.png');
+
   /// File path: assets/images/duck_sport.png
   AssetGenImage get duckSport =>
       const AssetGenImage('assets/images/duck_sport.png');
@@ -72,6 +76,7 @@ class $AssetsImagesGen {
         duck,
         duckFocus,
         duckPause,
+        duckRelax,
         duckSport,
         duckStudy,
         duckTag,

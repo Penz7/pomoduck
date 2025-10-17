@@ -46,13 +46,10 @@ class PomodoroCubit extends Cubit<PomodoroState> {
           final taskCompleted = await HybridDataCoordinator.instance.completeSession();
           
           if (taskCompleted) {
-            // Task completed - show completion dialog and stop timer
             _ticker?.cancel();
             _showTaskCompletionDialog();
           } else {
-          // Auto start session tiếp theo
           if (updated.sessionType == 'work') {
-            // Vừa hoàn thành work session → auto start break
             final settings = HiveDataManager.getSettings();
             final nextType = updated.getNextSessionType(settings.effectiveLongBreakInterval);
               
@@ -61,7 +58,6 @@ class PomodoroCubit extends Cubit<PomodoroState> {
                 sessionType: nextType,
               );
             } else {
-              // Vừa hoàn thành break session → auto start work tiếp theo
               await HybridDataCoordinator.instance.startPomodoroSession(
                 taskId: updated.taskId,
                 sessionType: 'work',
@@ -118,9 +114,7 @@ class PomodoroCubit extends Cubit<PomodoroState> {
   }
 
   void _showTaskCompletionDialog() {
-    // This will be handled by PomodoroScreen to show completion dialog
-    // For now, we'll emit a state change that PomodoroScreen can listen to
-    emit(PomodoroTaskCompleted());
+    emit(const PomodoroTaskCompleted());
   }
 
   @override

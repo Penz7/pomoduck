@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/data/models/session_model.dart';
 import 'package:pomo_duck/data/models/task_model.dart';
+import 'package:pomo_duck/data/database/database_helper.dart';
 
 import 'history_cubit.dart';
 
@@ -79,45 +80,33 @@ class HistoryScreen extends StatelessWidget {
             }
             
             if (state is HistoryLoaded) {
+              // Build unique task list (completed and in-progress)
+              final Map<int, TaskModel> taskMap = {};
+              for (final item in state.timelineItems) {
+                if (item.type == TimelineItemType.task && item.task != null) {
+                  final t = item.task!;
+                  if (t.id != null) taskMap[t.id!] = t;
+                }
+              }
+          final tasks = taskMap.values.toList()
+            ..sort((a, b) => (b.updatedAt ?? b.createdAt)
+                    .compareTo(a.updatedAt ?? a.createdAt));
+
               return RefreshIndicator(
                 onRefresh: () => context.read<HistoryCubit>().refresh(),
-                child: CustomScrollView(
-                  slivers: [
-                    // Statistics header
-                    SliverToBoxAdapter(
-                      child: _buildStatisticsHeader(context, state),
-                    ),
-                    // Timeline
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'Timeline',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
+                child: tasks.isEmpty
+                    ? ListView(children: [
+                        _buildEmptyState(context),
+                      ])
+                    : ListView.separated(
+                        padding: const EdgeInsets.only(top: 8, bottom: 24),
+                        itemCount: tasks.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final task = tasks[index];
+                        return _buildTaskRow(context, task);
+                        },
                       ),
-                    ),
-                    // Timeline items
-                    if (state.timelineItems.isEmpty)
-                      SliverToBoxAdapter(
-                        child: _buildEmptyState(context),
-                      )
-                    else
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final item = state.timelineItems[index];
-                            return _buildTimelineItem(context, item, index, state.timelineItems.length);
-                          },
-                          childCount: state.timelineItems.length,
-                        ),
-                      ),
-                  ],
-                ),
               );
             }
             
@@ -128,82 +117,7 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-  /// Build statistics header
-  Widget _buildStatisticsHeader(BuildContext context, HistoryLoaded state) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Tasks',
-                  '${state.completedTasks}/${state.totalTasks}',
-                  Icons.task_alt,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard(
-                  'Sessions',
-                  '${state.completedSessions}/${state.totalSessions}',
-                  Icons.timer,
-                  Colors.green,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build individual stat card
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed statistics UI per new requirements
 
   /// Build empty state
   Widget _buildEmptyState(BuildContext context) {
@@ -350,13 +264,18 @@ class HistoryScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text(
-                _formatDateTime(task.createdAt),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
-                ),
-              ),
+              TextButton.icon(
+                onPressed: () async {
+                  // Navigate to task timeline detail
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TaskTimelineScreen(task: task),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.timeline, size: 16),
+                label: const Text('View timeline'),
+              )
             ],
           ),
         ],
@@ -418,6 +337,12 @@ class HistoryScreen extends StatelessWidget {
                       color: _getSessionColor(session.sessionType),
                     ),
                   ),
+                ),
+              const SizedBox(width: 8),
+              if (session.taskId != null)
+                Text(
+                  '#${session.taskId}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                 ),
             ],
           ),
@@ -522,6 +447,200 @@ class HistoryScreen extends StatelessWidget {
 
   /// Format time to HH:mm format
   String _formatTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Compact row item for a task in the history list
+Widget _buildTaskRow(BuildContext context, TaskModel task) {
+  return ListTile(
+    tileColor: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    leading: Icon(
+      task.isCompleted ? Icons.check_circle : Icons.radio_button_checked,
+      color: task.isCompleted ? Colors.green : Colors.orange,
+    ),
+    title: Text(
+      task.title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(fontWeight: FontWeight.w600),
+    ),
+    subtitle: Row(
+      children: [
+        if (task.tag != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(task.tag!, style: const TextStyle(fontSize: 12, color: Colors.blue)),
+          ),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          'Pomodoros ${task.completedPomodoros}/${task.estimatedPomodoros}',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+      ],
+    ),
+    trailing: const Icon(Icons.chevron_right),
+    onTap: () async {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => TaskTimelineScreen(task: task)),
+      );
+    },
+  );
+}
+
+class TaskTimelineScreen extends StatelessWidget {
+  const TaskTimelineScreen({super.key, required this.task});
+
+  final TaskModel task;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(task.title),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: FutureBuilder<List<SessionModel>>(
+        future: DatabaseHelper.instance.getSessionsByTaskId(task.id!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Failed to load timeline: ${snapshot.error}'),
+            );
+          }
+          final sessions = snapshot.data ?? [];
+          if (sessions.isEmpty) {
+            return const Center(child: Text('No sessions for this task'));
+          }
+
+          // Sort ascending by time to form a timeline
+          sessions.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: sessions.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final s = sessions[index];
+              return _TimelineSessionItem(session: s);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _TimelineSessionItem extends StatelessWidget {
+  const _TimelineSessionItem({required this.session});
+  final SessionModel session;
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = session.actualDuration ?? session.plannedDuration;
+    final durationText = _HistoryFormat.formatDuration(duration);
+
+    Color _colorFor(SessionType type) {
+      switch (type) {
+        case SessionType.work:
+          return Colors.blue;
+        case SessionType.shortBreak:
+          return Colors.orange;
+        case SessionType.longBreak:
+          return Colors.green;
+      }
+    }
+
+    IconData _iconFor(SessionType type) {
+      switch (type) {
+        case SessionType.work:
+          return Icons.work;
+        case SessionType.shortBreak:
+          return Icons.coffee;
+        case SessionType.longBreak:
+          return Icons.restaurant;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.grey.shade200, blurRadius: 4, offset: const Offset(0, 1)),
+        ],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(_iconFor(session.sessionType), color: _colorFor(session.sessionType), size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              () {
+                switch (session.sessionType) {
+                  case SessionType.work:
+                    return 'Work Session';
+                  case SessionType.shortBreak:
+                    return 'Short Break';
+                  case SessionType.longBreak:
+                    return 'Long Break';
+                }
+              }(),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: session.isCompleted ? Colors.green : Colors.grey.shade800),
+            ),
+          ),
+          if (session.tag != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: _colorFor(session.sessionType).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              child: Text(session.tag!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _colorFor(session.sessionType))),
+            ),
+        ]),
+        const SizedBox(height: 8),
+        Row(children: [
+          Text('Duration: $durationText', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+          const Spacer(),
+          Text(_HistoryFormat.formatDateTime(session.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+        ]),
+        if (session.startTime != null && session.endTime != null) ...[
+          const SizedBox(height: 4),
+          Text('${_HistoryFormat.formatTime(session.startTime!)} - ${_HistoryFormat.formatTime(session.endTime!)}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+        ],
+      ]),
+    );
+  }
+}
+
+class _HistoryFormat {
+  static String formatDuration(int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    final secs = seconds % 60;
+    if (hours > 0) return '${hours}h ${minutes}m';
+    if (minutes > 0) return '${minutes}m ${secs}s';
+    return '${secs}s';
+  }
+
+  static String formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    if (dateOnly == today) return 'Today ${formatTime(dateTime)}';
+    return '${dateTime.day}/${dateTime.month} ${formatTime(dateTime)}';
+  }
+
+  static String formatTime(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
