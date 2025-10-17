@@ -202,8 +202,23 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Pomodoro Settings',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              Row(
+                children: [
+                  Assets.images.duckTag.image(
+                    width: 25,
+                    height: 25,
+                    fit: BoxFit.contain,
+                  ),
+                  10.width,
+                  const Text(
+                    'Pomodoro Settings',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
               16.height,
               BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
                 builder: (context, state) {
@@ -213,8 +228,14 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Tag'),
-                      const SizedBox(height: 8),
+                      const Text(
+                        'Tag',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      10.height,
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -230,18 +251,23 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           const _AddTagChip(),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Pomodoro Mode Toggle
+                      16.height,
                       SwitchListTile(
                         value: s.isStandardMode,
                         onChanged: (v) => context
                             .read<ConfigPomodoroCubit>()
                             .setStandardMode(v),
-                        title: const Text('Standard Pomodoro Mode'),
+                        title: const Text(
+                          'Standard Pomodoro Mode',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         subtitle: Text(
-                          s.isStandardMode 
-                            ? 'Following Francesco Cirillo\'s original technique (25min work, 5min break, 15min long break after 4 pomodoros)'
-                            : 'Custom mode - Adjustable durations and cycle count',
+                          s.isStandardMode
+                              ? 'Following Francesco Cirillo\'s original technique (25min work, 5min break, 15min long break after 4 pomodoros)'
+                              : 'Custom mode - Adjustable durations and cycle count',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -249,11 +275,16 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),
-                      const SizedBox(height: 16),
+                      16.height,
                       // Pomodoro Cycle Count (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
-                        const Text('Pomodoro Cycle Count'),
-                        const SizedBox(height: 8),
+                        const Text(
+                          'Pomodoro Cycle Count',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         Row(
                           children: [
                             Expanded(
@@ -266,9 +297,11 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                                 onChanged: (value) => context
                                     .read<ConfigPomodoroCubit>()
                                     .updatePomodoroCycleCount(value.toInt()),
+                                activeColor: Colors.black,
+                                inactiveColor: Colors.grey,
+                                secondaryActiveColor: Colors.black,
                               ),
                             ),
-                            const SizedBox(width: 16),
                             Text(
                               '${s.pomodoroCycleCount}',
                               style: const TextStyle(
@@ -286,10 +319,16 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 16),
+                      16.height,
                       // Durations (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
-                        const Text('Work Duration (minutes)'),
+                        const Text(
+                          'Work Duration (minutes)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         Slider(
                           value: (s.workDuration / 60).clamp(5.0, 200.0),
                           min: 5,
@@ -303,7 +342,13 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        const Text('Short Break Duration (minutes)'),
+                        const Text(
+                          'Short Break Duration (minutes)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         Slider(
                           value: (s.shortBreakDuration / 60).clamp(1.0, 30.0),
                           min: 1,
@@ -317,7 +362,13 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        const Text('Long Break Duration (minutes)'),
+                        const Text(
+                          'Long Break Duration (minutes)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         Slider(
                           value: (s.longBreakDuration / 60).clamp(5.0, 60.0),
                           min: 5,
@@ -331,7 +382,13 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        const Text('Long Break Interval'),
+                        const Text(
+                          'Long Break Interval',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         Slider(
                           value: s.longBreakInterval.toDouble(),
                           min: 2,
@@ -412,6 +469,11 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                   decoration: const InputDecoration(
                     labelText: 'Task title',
                     border: OutlineInputBorder(),
+                    labelStyle: TextStyle(fontWeight: FontWeight.w500, color: Colors.black,),
+                    focusColor: Colors.black,
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
                   ),
                   validator: (v) {
                     final value = (v ?? '').trim();
@@ -422,29 +484,24 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                     return null;
                   },
                 ),
-                20.height,
-                const Text('Durations'),
-                8.height,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _durationTile('Work', settings.workDuration),
-                    _durationTile('Short', settings.shortBreakDuration),
-                    _durationTile('Long', settings.longBreakDuration),
-                  ],
-                ),
-                20.height,
+                40.height,
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('Cancel'),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    12.width,
                     Expanded(
-                      child: ElevatedButton(
+                      child: OutlinedButton(
                         onPressed: () async {
                           if (!formKey.currentState!.validate()) return;
                           final task = TaskModel(
@@ -466,7 +523,13 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                             ctx.goWithPath('/home/pomodoro');
                           }
                         },
-                        child: const Text('Start'),
+                        child: const Text(
+                          'Start',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -478,19 +541,6 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
         ),
       );
     },
-  );
-}
-
-Widget _durationTile(String label, int seconds) {
-  final mm = (seconds ~/ 60).toString().padLeft(2, '0');
-  final ss = (seconds % 60).toString().padLeft(2, '0');
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      const SizedBox(height: 4),
-      Text('$mm:$ss'),
-    ],
   );
 }
 

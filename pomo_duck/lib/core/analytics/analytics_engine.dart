@@ -177,27 +177,49 @@ class AnalyticsEngine {
       GROUP BY session_type
     ''', [start.toIso8601String(), end.toIso8601String()]);
     
-    // Focus streaks (consecutive work sessions)
-    final focusStreaksResult = await db.rawQuery('''
-      WITH work_sessions AS (
-        SELECT start_time, ROW_NUMBER() OVER (ORDER BY start_time) as rn
-        FROM sessions 
-        WHERE start_time >= ? AND start_time <= ? 
-          AND session_type = 'work' 
-          AND is_completed = 1
-      )
-      SELECT MAX(streak_length) as max_streak
-      FROM (
-        SELECT COUNT(*) as streak_length
-        FROM work_sessions
-        GROUP BY DATE(start_time, '-' || (rn - ROW_NUMBER() OVER (ORDER BY start_time)) || ' days')
-      )
+    // Focus streaks (consecutive days having at least one completed work session)
+    // Note: Avoid window functions for broader SQLite compatibility (iOS bundled versions)
+    final workDaysResult = await db.rawQuery('''
+      SELECT DISTINCT date(start_time) as work_date
+      FROM sessions 
+      WHERE start_time >= ? AND start_time <= ? 
+        AND session_type = 'work' 
+        AND is_completed = 1
+      ORDER BY work_date ASC
     ''', [start.toIso8601String(), end.toIso8601String()]);
+
+    int _computeMaxConsecutiveDays(List<String> sortedIsoDates) {
+      if (sortedIsoDates.isEmpty) return 0;
+      int maxStreak = 1;
+      int currentStreak = 1;
+      DateTime? prev;
+      for (final d in sortedIsoDates) {
+        final dt = DateTime.parse(d);
+        if (prev != null) {
+          final diff = dt.difference(prev).inDays;
+          if (diff == 1) {
+            currentStreak += 1;
+            if (currentStreak > maxStreak) maxStreak = currentStreak;
+          } else if (diff == 0) {
+            // same day already handled via DISTINCT, skip
+          } else {
+            currentStreak = 1;
+          }
+        }
+        prev = dt;
+      }
+      return maxStreak;
+    }
+
+    final dates = workDaysResult
+        .map((row) => row['work_date'] as String)
+        .toList(growable: false);
+    final maxFocusStreak = _computeMaxConsecutiveDays(dates);
     
     return {
       'deep_work_sessions': deepWorkResult.first['deep_work_sessions'] as int,
       'break_efficiency': breakEfficiencyResult,
-      'max_focus_streak': focusStreaksResult.first['max_streak'] as int? ?? 0,
+      'max_focus_streak': maxFocusStreak,
     };
   }
 

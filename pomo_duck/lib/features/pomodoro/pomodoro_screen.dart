@@ -14,20 +14,36 @@ class PomodoroScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Pomodoro Paused'),
-          content: const Text(
-              'Your pomodoro session is paused. What would you like to do?'),
+          backgroundColor: Colors.white,
+          title: const Text('Hmmmmm!'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Hey, I see you slowing down... Don’t give up now — you’ve come too far to quit.',
+              ),
+              10.height,
+              Assets.images.duckPause.image(
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.read<PomodoroCubit>().resume();
               },
-              child: const Text('Resume'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Keep Paused'),
+              child: const Text(
+                'Resume',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -38,7 +54,13 @@ class PomodoroScreen extends StatelessWidget {
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Stop Session'),
+              child: const Text(
+                'Stop',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );
@@ -164,15 +186,18 @@ class PomodoroScreen extends StatelessWidget {
                     ),
                   ),
                   20.height,
+
                   /// Duck Image (switches by session type and selected tag)
                   BlocSelector<PomodoroCubit, PomodoroState, String>(
                     selector: (state) => state.sessionType,
                     builder: (context, sessionType) {
                       if (sessionType == 'work') {
-                        return BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
+                        return BlocBuilder<ConfigPomodoroCubit,
+                            ConfigPomodoroState>(
                           buildWhen: (p, c) => p.selectedTag != c.selectedTag,
                           builder: (context, configState) {
-                            final tag = configState.selectedTag.trim().toLowerCase();
+                            final tag =
+                                configState.selectedTag.trim().toLowerCase();
                             final dynamicPath = 'assets/images/duck_$tag.png';
                             return Image.asset(
                               dynamicPath,
