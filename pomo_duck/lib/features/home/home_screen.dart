@@ -286,23 +286,23 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       // Durations (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
                         const Text('Work Duration (minutes)'),
-                      Slider(
-                        value: (s.workDuration / 60).clamp(5.0, 200.0),
-                        min: 5,
-                        max: 200,
-                        divisions: 39,
-                        label: (s.workDuration / 60).round().toString(),
-                        onChanged: (value) => context
-                            .read<ConfigPomodoroCubit>()
-                            .updateWorkMinutes(value.round()),
-                        activeColor: Colors.black,
-                        inactiveColor: Colors.grey,
-                        secondaryActiveColor: Colors.black,
-                      ),
+                        Slider(
+                          value: (s.workDuration / 60).clamp(5.0, 200.0),
+                          min: 5,
+                          max: 200,
+                          divisions: 39,
+                          label: (s.workDuration / 60).round().toString(),
+                          onChanged: (value) => context
+                              .read<ConfigPomodoroCubit>()
+                              .updateWorkMinutes(value.round()),
+                          activeColor: Colors.black,
+                          inactiveColor: Colors.grey,
+                          secondaryActiveColor: Colors.black,
+                        ),
                         const Text('Short Break Duration (minutes)'),
                         Slider(
                           value: (s.shortBreakDuration / 60).clamp(1.0, 30.0),
@@ -327,6 +327,20 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           onChanged: (value) => context
                               .read<ConfigPomodoroCubit>()
                               .updateLongBreakMinutes(value.round()),
+                          activeColor: Colors.black,
+                          inactiveColor: Colors.grey,
+                          secondaryActiveColor: Colors.black,
+                        ),
+                        const Text('Long Break Interval'),
+                        Slider(
+                          value: s.longBreakInterval.toDouble(),
+                          min: 2,
+                          max: 10,
+                          divisions: 8,
+                          label: 'Every ${s.longBreakInterval} pomodoros',
+                          onChanged: (value) => context
+                              .read<ConfigPomodoroCubit>()
+                              .updateLongBreakInterval(value.round()),
                           activeColor: Colors.black,
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,

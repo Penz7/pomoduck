@@ -75,17 +75,17 @@ class PomodoroSettings extends HiveObject {
     );
   }
 
-  /// Getter để lấy thời gian theo loại session
+  /// Getter để lấy thời gian theo loại session (sử dụng effective values)
   int getDurationForSessionType(String sessionType) {
     switch (sessionType) {
       case 'work':
-        return workDuration;
+        return effectiveWorkDuration;
       case 'shortBreak':
-        return shortBreakDuration;
+        return effectiveShortBreakDuration;
       case 'longBreak':
-        return longBreakDuration;
+        return effectiveLongBreakDuration;
       default:
-        return workDuration;
+        return effectiveWorkDuration;
     }
   }
 
@@ -94,14 +94,14 @@ class PomodoroSettings extends HiveObject {
     return false; // Không auto start nữa
   }
 
-  /// Getter để check xem có nên long break không
+  /// Getter để check xem có nên long break không (sử dụng effective values)
   bool shouldTakeLongBreak(int completedPomodoros) {
-    return completedPomodoros > 0 && completedPomodoros % longBreakInterval == 0;
+    return completedPomodoros > 0 && completedPomodoros % effectiveLongBreakInterval == 0;
   }
 
-  /// Getter để check xem cycle có hoàn thành không
+  /// Getter để check xem cycle có hoàn thành không (sử dụng effective values)
   bool isCycleComplete(int completedPomodoros) {
-    return completedPomodoros >= pomodoroCycleCount;
+    return completedPomodoros >= effectivePomodoroCycleCount;
   }
 
   /// Getter để lấy giá trị Standard Pomodoro (theo chuẩn Francesco Cirillo)

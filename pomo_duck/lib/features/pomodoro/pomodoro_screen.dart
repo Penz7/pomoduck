@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/features/pomodoro/pomodoro_cubit.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/core/local_storage/hive_data_manager.dart';
@@ -13,29 +12,32 @@ class PomodoroScreen extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Pomodoro Paused'),
-          content: Assets.images.duckPause.image(
-            width: 200,
-            height: 200,
-            fit: BoxFit.contain,
-          ),
+          content: const Text('Your pomodoro session is paused. What would you like to do?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
                 context.read<PomodoroCubit>().resume();
               },
-              child: const Text('Continue'),
+              child: const Text('Resume'),
             ),
             TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Keep Paused'),
+            ),
+            ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
                 _handleStopAndReset(context);
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Stop'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Stop Session'),
             ),
           ],
         );
@@ -47,6 +49,40 @@ class PomodoroScreen extends StatelessWidget {
     await context.read<PomodoroCubit>().pause();
     await context.read<PomodoroCubit>().stop();
     Navigator.of(context).pop();
+  }
+
+  Future<void> _showTaskCompletionDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 28),
+              SizedBox(width: 8),
+              Text('Task Completed!'),
+            ],
+          ),
+          content: const Text(
+            'Congratulations! You have successfully completed all pomodoro sessions for this task.',
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).pop(); // Go back to home screen
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Great!'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _showExitConfirmDialog(BuildContext context) async {
@@ -62,33 +98,11 @@ class PomodoroScreen extends StatelessWidget {
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      useRootNavigator: true,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Stop Pomodoro Session?'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Assets.images.duckPause.image(
-                width: 120,
-                height: 120,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'You have an active Pomodoro session running. Are you sure you want to stop it?',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Progress will be saved and task will be marked as completed.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+          title: const Text('Exit Pomodoro Session'),
+          content: const Text(
+            'You have an active pomodoro session. Are you sure you want to stop and exit?',
           ),
           actions: [
             TextButton(
@@ -109,18 +123,13 @@ class PomodoroScreen extends StatelessWidget {
     );
 
     if (result == true && context.mounted) {
-      final cubit = context.read<PomodoroCubit>();
-      await _handleStopSession(context, cubit);
+      await _handleStopSession(context);
     }
   }
 
-  /// Handle stop session và update task completion
-  Future<void> _handleStopSession(
-      BuildContext context, PomodoroCubit cubit) async {
-    // Stop current session using PomodoroCubit
+  Future<void> _handleStopSession(BuildContext context) async {
+    final cubit = context.read<PomodoroCubit>();
     await cubit.stop();
-
-    // Navigate back
     if (context.mounted) {
       Navigator.of(context).pop();
     }
@@ -132,111 +141,117 @@ class PomodoroScreen extends StatelessWidget {
       create: (context) {
         return PomodoroCubit();
       },
-      child: WillPopScope(
-        onWillPop: () async {
-          await _showExitConfirmDialog(context);
-          return false; // Prevent default back behavior
-        },
+      child: PopScope(
+        canPop: false,
         child: Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: Column(
-              children: [
-                10.height,
-                Row(
-                  children: [
-                    10.width,
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () {
-                        _showExitConfirmDialog(context);
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.settings, color: Colors.black),
+                        onPressed: () {
+                          _showExitConfirmDialog(context);
+                        },
+                      ),
+                    ],
+                  ),
+                  BlocListener<PomodoroCubit, PomodoroState>(
+                    listener: (context, state) {
+                      if (state is PomodoroTaskCompleted) {
+                        _showTaskCompletionDialog(context);
+                      }
+                    },
+                    child: BlocBuilder<PomodoroCubit, PomodoroState>(
+                      builder: (context, state) {
+                        final mm = (state.remainingSeconds ~/ 60)
+                            .toString()
+                            .padLeft(2, '0');
+                        final ss = (state.remainingSeconds % 60)
+                            .toString()
+                            .padLeft(2, '0');
+                        return Column(
+                          children: [
+                            Text(
+                              state.sessionType == 'work'
+                                  ? 'Focus'
+                                  : state.sessionType == 'shortBreak'
+                                      ? 'Short Break'
+                                      : 'Long Break',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            if (state.activeCycle != null)
+                              BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
+                                builder: (context, configState) {
+                                  final settings = configState.settings;
+                                  final totalPomodoros = settings.effectivePomodoroCycleCount;
+                                  return Text(
+                                    '${state.activeCycle!.completedPomodoros}/$totalPomodoros Pomodoro',
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.black54),
+                                  );
+                                },
+                              ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '$mm:$ss',
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        );
                       },
                     ),
-                  ],
-                ),
-                BlocBuilder<PomodoroCubit, PomodoroState>(
-                  builder: (context, state) {
-                    final mm = (state.remainingSeconds ~/ 60)
-                        .toString()
-                        .padLeft(2, '0');
-                    final ss = (state.remainingSeconds % 60)
-                        .toString()
-                        .padLeft(2, '0');
-                    return Column(
-                      children: [
-                        Text(
-                          state.sessionType == 'work'
-                              ? 'Focus'
-                              : (state.sessionType == 'shortBreak'
-                                  ? 'Short Break'
-                                  : 'Long Break'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  ),
+                  const SizedBox(height: 20),
+                  Assets.images.duckFocus.image(
+                    width: 350,
+                    height: 350,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(height: 40),
+                  BlocBuilder<PomodoroCubit, PomodoroState>(
+                    builder: (context, state) {
+                      return GestureDetector(
+                        onTap: state.isRunning
+                            ? () async {
+                                await context
+                                    .read<PomodoroCubit>()
+                                    .pause()
+                                    .then((_) {
+                                  if (!context.mounted) return;
+                                  _showPauseDialog(context);
+                                });
+                              }
+                            : () => context.read<PomodoroCubit>().stop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: state.isRunning
+                              ? Assets.images.icPause.image(
+                                  width: 64,
+                                  height: 64,
+                                )
+                              : Assets.images.icPlay.image(
+                                  width: 64,
+                                  height: 64,
+                                ),
                         ),
-                        4.height,
-                        if (state.activeCycle != null)
-                          BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
-                            builder: (context, configState) {
-                              final settings = configState.settings;
-                              final totalPomodoros = settings.isStandardMode ? 4 : settings.pomodoroCycleCount;
-                              return Text(
-                                '${state.activeCycle!.completedPomodoros}/$totalPomodoros Pomodoro',
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.black54),
-                              );
-                            },
-                          ),
-                        6.height,
-                        Text(
-                          '$mm:$ss',
-                          style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                20.height,
-                Assets.images.duckFocus.image(
-                  width: 350,
-                  height: 350,
-                  fit: BoxFit.cover,
-                ),
-                40.height,
-                BlocBuilder<PomodoroCubit, PomodoroState>(
-                  builder: (context, state) {
-                    return GestureDetector(
-                      onTap: state.isRunning
-                          ? () async {
-                              await context
-                                  .read<PomodoroCubit>()
-                                  .pause()
-                                  .then((_) {
-                                if (!context.mounted) return;
-                                _showPauseDialog(context);
-                              });
-                            }
-                          : () => context.read<PomodoroCubit>().stop(),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: state.isRunning
-                            ? Assets.images.icPause.image(
-                                width: 64,
-                                height: 64,
-                              )
-                            : Assets.images.icPlay.image(
-                                width: 64,
-                                height: 64,
-                              ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

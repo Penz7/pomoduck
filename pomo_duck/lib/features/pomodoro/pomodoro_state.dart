@@ -34,3 +34,14 @@ class PomodoroState {
     );
   }
 }
+
+@immutable
+class PomodoroTaskCompleted extends PomodoroState {
+  const PomodoroTaskCompleted() : super(
+    plannedSeconds: 0,
+    elapsedSeconds: 0,
+    sessionType: '',
+    isRunning: false,
+    activeCycle: null,
+  );
+}

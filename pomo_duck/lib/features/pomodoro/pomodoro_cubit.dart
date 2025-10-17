@@ -43,22 +43,30 @@ class PomodoroCubit extends Cubit<PomodoroState> {
         ));
 
         if (updated.elapsedSeconds >= updated.plannedDurationSeconds) {
-          await HybridDataCoordinator.instance.completeSession();
+          final taskCompleted = await HybridDataCoordinator.instance.completeSession();
           
-          // Auto start break nếu vừa hoàn thành work session
-          if (updated.sessionType == 'work') {
-            final settings = HiveDataManager.getSettings();
-            final effectiveInterval = settings.isStandardMode ? 4 : settings.longBreakInterval;
-            final nextType = updated.getNextSessionType(effectiveInterval);
-            
-            // Auto start break session
-            await HybridDataCoordinator.instance.startPomodoroSession(
-              taskId: updated.taskId,
-              sessionType: nextType,
-            );
-          } else {
-            // Nếu là break session thì dừng timer
+          if (taskCompleted) {
+            // Task completed - show completion dialog and stop timer
             _ticker?.cancel();
+            _showTaskCompletionDialog();
+          } else {
+          // Auto start session tiếp theo
+          if (updated.sessionType == 'work') {
+            // Vừa hoàn thành work session → auto start break
+            final settings = HiveDataManager.getSettings();
+            final nextType = updated.getNextSessionType(settings.effectiveLongBreakInterval);
+              
+              await HybridDataCoordinator.instance.startPomodoroSession(
+                taskId: updated.taskId,
+                sessionType: nextType,
+              );
+            } else {
+              // Vừa hoàn thành break session → auto start work tiếp theo
+              await HybridDataCoordinator.instance.startPomodoroSession(
+                taskId: updated.taskId,
+                sessionType: 'work',
+              );
+            }
           }
         }
       }
@@ -107,6 +115,12 @@ class PomodoroCubit extends Cubit<PomodoroState> {
     ));
     
     _ticker?.cancel();
+  }
+
+  void _showTaskCompletionDialog() {
+    // This will be handled by PomodoroScreen to show completion dialog
+    // For now, we'll emit a state change that PomodoroScreen can listen to
+    emit(PomodoroTaskCompleted());
   }
 
   @override

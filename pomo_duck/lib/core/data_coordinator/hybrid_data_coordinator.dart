@@ -43,8 +43,7 @@ class HybridDataCoordinator {
         // Coming from work → decide short/long break
         PomodoroCycleModel? activeCycle = await getActiveCycle();
         final completedWorks = activeCycle?.completedPomodoros ?? currentState.completedPomodoros;
-        final effectiveInterval = settings.isStandardMode ? 4 : settings.longBreakInterval;
-        final willBeLong = completedWorks > 0 && completedWorks % effectiveInterval == 0;
+        final willBeLong = settings.shouldTakeLongBreak(completedWorks);
         actualSessionType = willBeLong ? 'longBreak' : 'shortBreak';
       }
     }
@@ -61,10 +60,8 @@ class HybridDataCoordinator {
         dbSessionTypeStr = 'work';
     }
     
-    // 3. Get duration from settings (use effective values for Standard Mode)
-    final plannedDuration = settings.isStandardMode 
-        ? settings.standardPomodoroSettings.getDurationForSessionType(actualSessionType)
-        : settings.getDurationForSessionType(actualSessionType);
+    // 3. Get duration from settings (use effective values)
+    final plannedDuration = settings.getDurationForSessionType(actualSessionType);
     
     // 4. Create session in SQLite
     final session = SessionModel(
@@ -113,7 +110,7 @@ class HybridDataCoordinator {
   }
 
   /// Complete session - Hive → SQLite → Hive flow
-  Future<void> completeSession() async {
+  Future<bool> completeSession() async {
     final currentState = HiveDataManager.getCurrentTimerState();
     
     if (currentState.sessionId != null) {
@@ -139,13 +136,17 @@ class HybridDataCoordinator {
               
               // Check if total pomodoro sessions is complete
               final settings = HiveDataManager.getSettings();
-              final effectiveCycleCount = settings.isStandardMode ? 4 : settings.pomodoroCycleCount;
-              if (incremented.completedPomodoros >= effectiveCycleCount) {
+              if (incremented.completedPomodoros >= settings.effectivePomodoroCycleCount) {
                 await completeCycle(incremented.id!);
                 
                 // Auto-complete task if all pomodoro sessions are done
                 if (currentState.taskId != null) {
-                  await _completeTask(currentState.taskId!);
+                  final taskCompleted = await _completeTask(currentState.taskId!);
+                  if (taskCompleted) {
+                    // Task completed successfully - stop timer and return completion status
+                    await HiveDataManager.completeSession();
+                    return true; // Indicate task completion
+                  }
                 }
               }
             }
@@ -163,6 +164,7 @@ class HybridDataCoordinator {
       );
     }
     await HiveDataManager.completeSession();
+    return false; // No task completion in this session
   }
 
   /// Pause session
@@ -286,11 +288,10 @@ class HybridDataCoordinator {
   /// Start new pomodoro cycle
   Future<PomodoroCycleModel> startNewCycle() async {
     final settings = HiveDataManager.getSettings();
-    final effectiveCycleCount = settings.isStandardMode ? 4 : settings.pomodoroCycleCount;
     final cycle = PomodoroCycleModel(
       startTime: DateTime.now(),
       createdAt: DateTime.now(),
-      totalPomodoros: effectiveCycleCount,
+      totalPomodoros: settings.effectivePomodoroCycleCount,
     );
     final cycleId = await DatabaseHelper.instance.insertPomodoroCycle(cycle);
     return cycle.copyWith(id: cycleId);
@@ -357,7 +358,7 @@ class HybridDataCoordinator {
   }
 
   /// Complete task when cycle is finished (internal method)
-  Future<void> _completeTask(int taskId) async {
+  Future<bool> _completeTask(int taskId) async {
     try {
       final task = await DatabaseHelper.instance.getTaskById(taskId);
       if (task != null) {
@@ -366,10 +367,13 @@ class HybridDataCoordinator {
           updatedAt: DateTime.now(),
         );
         await DatabaseHelper.instance.updateTask(completedTask);
+        return true; // Task completed successfully
       }
+      return false;
     } catch (e) {
       // Log error but don't throw to avoid breaking session completion
       print('Error completing task: $e');
+      return false;
     }
   }
 

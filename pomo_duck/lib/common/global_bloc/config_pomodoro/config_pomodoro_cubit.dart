@@ -57,7 +57,20 @@ class ConfigPomodoroCubit extends Cubit<ConfigPomodoroState> {
   }
 
   Future<void> setStandardMode(bool isStandard) async {
-    await HiveDataManager.updateSetting(isStandardMode: isStandard);
+    if (isStandard) {
+      // Khi chuyển sang Standard Mode, set tất cả values theo chuẩn Pomodoro
+      await HiveDataManager.updateSetting(
+        isStandardMode: true,
+        workDuration: 1500, // 25 phút
+        shortBreakDuration: 300, // 5 phút
+        longBreakDuration: 900, // 15 phút
+        longBreakInterval: 4, // Long break sau 4 pomodoros
+        pomodoroCycleCount: 4, // 4 pomodoros per cycle
+      );
+    } else {
+      // Khi chuyển sang Custom Mode, chỉ toggle mode
+      await HiveDataManager.updateSetting(isStandardMode: false);
+    }
   }
 
   Future<void> setSoundEnabled(bool value) async {
