@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/common/extensions/size_extension.dart';
@@ -8,7 +10,17 @@ import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cub
 class PomodoroScreen extends StatelessWidget {
   const PomodoroScreen({super.key});
 
+  static const List<String> _pauseQuotes = [
+    'Hey, I see you slowing down... Don’t give up now — you’ve come too far to quit.',
+    "Looks like you’ve hit a wall — that’s okay. Just don’t stay stuck there.",
+    "You’ve paused long enough. Time to get back up and keep going.",
+    "You didn’t come this far just to stop now, right? Let’s keep pushing.",
+    "It's okay to rest, but don’t forget why you started.",
+  ];
+
   void _showPauseDialog(BuildContext context) {
+    // Chọn ngẫu nhiên 1 câu nói khi pause
+    final randomQuote = _pauseQuotes[Random().nextInt(_pauseQuotes.length)];
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -19,9 +31,8 @@ class PomodoroScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Hey, I see you slowing down... Don’t give up now — you’ve come too far to quit.',
-              ),
+              // Hiển thị câu nói ngẫu nhiên
+              Text(randomQuote),
               10.height,
               Assets.images.duckPause.image(
                 width: 200,
@@ -125,8 +136,9 @@ class PomodoroScreen extends StatelessWidget {
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Column(
+              child: ListView(
                 children: [
+                  20.height,
                   BlocListener<PomodoroCubit, PomodoroState>(
                     listener: (context, state) {
                       if (state is PomodoroTaskCompleted) {
@@ -186,8 +198,6 @@ class PomodoroScreen extends StatelessWidget {
                     ),
                   ),
                   20.height,
-
-                  /// Duck Image (switches by session type and selected tag)
                   BlocSelector<PomodoroCubit, PomodoroState, String>(
                     selector: (state) => state.sessionType,
                     builder: (context, sessionType) {
@@ -222,6 +232,8 @@ class PomodoroScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  16.height,
+                  const MotivationTicker(),
                   40.height,
                   BlocBuilder<PomodoroCubit, PomodoroState>(
                     builder: (context, state) {
@@ -257,6 +269,118 @@ class PomodoroScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class MotivationMessage {
+  final String primary;
+  final String? secondary;
+
+  const MotivationMessage({required this.primary, this.secondary});
+}
+
+const List<MotivationMessage> _tickerMessages = [
+  MotivationMessage(
+    primary: "The future belongs to those who don’t give up today.",
+    secondary: "👉 Stick with it now, and your future self will thank you.",
+  ),
+  MotivationMessage(
+    primary: "As long as you're trying, you're already ahead of most people.",
+    secondary: "👉 Even showing up counts – don’t forget that.",
+  ),
+  MotivationMessage(
+    primary: "Tough times don’t last, but tough people do.",
+    secondary: "👉 You’re stronger than you think. For real.",
+  ),
+  MotivationMessage(
+    primary: "Every day’s a new shot to get closer to where you wanna be.",
+    secondary: "👉 Take it one day at a time – that’s all it takes.",
+  ),
+  MotivationMessage(
+    primary: "Don’t let a bad moment ruin your long-term goal.",
+    secondary:
+        "👉 Feel it, deal with it, but don’t lose sight of the big picture.",
+  ),
+  MotivationMessage(
+    primary:
+        "No one starts off being great – but those who keep going get there.",
+    secondary: "👉 We all start somewhere. Just don’t stop.",
+  ),
+  MotivationMessage(
+    primary: "It’s okay to go slow – just don’t stop.",
+    secondary: "👉 Slow progress is still progress. Keep moving.",
+  ),
+];
+
+class MotivationTicker extends StatefulWidget {
+  const MotivationTicker({super.key});
+
+  @override
+  State<MotivationTicker> createState() => _MotivationTickerState();
+}
+
+class _MotivationTickerState extends State<MotivationTicker> {
+  final Random _random = Random();
+  int _currentIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = _random.nextInt(_tickerMessages.length);
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        int next;
+        do {
+          next = _random.nextInt(_tickerMessages.length);
+        } while (next == _currentIndex && _tickerMessages.length > 1);
+        _currentIndex = next;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final message = _tickerMessages[_currentIndex];
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: child,
+      ),
+      child: Column(
+        key: ValueKey<int>(_currentIndex),
+        children: [
+          Text(
+            message.primary,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (message.secondary != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              message.secondary!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
