@@ -107,4 +107,8 @@
   "today": "Today",
   "no_statistics_yet": "No statistics yet",
   "no_statistics_message": "Start your first Pomodoro session to see your statistics here"
+  ,
+  "clear_history": "Clear History",
+  "clear_history_message": "Are you sure you want to clear all history? This action cannot be undone.",
+  "clear": "Clear"
 }

@@ -121,7 +121,10 @@ class CodegenLoader extends AssetLoader{
   "task_incomplete": "Task not completed",
   "progress_label": "Progress: {completed}/{estimated}",
   "no_statistics_yet": "No statistics yet",
-  "no_statistics_message": "Start your first Pomodoro session to see your statistics here"
+  "no_statistics_message": "Start your first Pomodoro session to see your statistics here",
+  "clear_history": "Clear History",
+  "clear_history_message": "Are you sure you want to clear all history? This action cannot be undone.",
+  "clear": "Clear"
 };
 static const Map<String,dynamic> _vi_VN = {
   "home": "Trang chủ",
@@ -230,7 +233,10 @@ static const Map<String,dynamic> _vi_VN = {
   "task_incomplete": "Task chưa hoàn thành",
   "progress_label": "Tiến độ: {completed}/{estimated}",
   "no_statistics_yet": "Chưa có thống kê",
-  "no_statistics_message": "Bắt đầu phiên Pomodoro đầu tiên để xem thống kê ở đây"
+  "no_statistics_message": "Bắt đầu phiên Pomodoro đầu tiên để xem thống kê ở đây",
+  "clear_history": "Xóa lịch sử",
+  "clear_history_message": "Bạn có chắc chắn muốn xóa toàn bộ lịch sử? Hành động này không thể hoàn tác.",
+  "clear": "Xóa"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en_US": _en_US, "vi_VN": _vi_VN};
 }

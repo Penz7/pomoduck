@@ -110,5 +110,8 @@ abstract class  LocaleKeys {
   static const progress_label = 'progress_label';
   static const no_statistics_yet = 'no_statistics_yet';
   static const no_statistics_message = 'no_statistics_message';
+  static const clear_history = 'clear_history';
+  static const clear_history_message = 'clear_history_message';
+  static const clear = 'clear';
 
 }

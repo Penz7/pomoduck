@@ -43,6 +43,21 @@ class HistoryCubit extends Cubit<HistoryState> {
     await loadHistoryData();
   }
 
+  /// Xóa toàn bộ lịch sử
+  Future<void> clearHistory() async {
+    try {
+      emit(HistoryLoading());
+      
+      // Xóa tất cả tasks và sessions từ database
+      await DatabaseHelper.instance.clearAllData();
+      
+      // Reload dữ liệu (sẽ trả về empty state)
+      await loadHistoryData();
+    } catch (e) {
+      emit(HistoryError('Failed to clear history: $e'));
+    }
+  }
+
   /// Group sessions theo ngày
   Map<String, List<SessionModel>> _groupSessionsByDate(List<SessionModel> sessions) {
     final Map<String, List<SessionModel>> grouped = {};

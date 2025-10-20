@@ -514,4 +514,16 @@ class DatabaseHelper {
       'todayCycles': todayCycles,
     };
   }
+
+  // ==================== CLEAR DATA OPERATIONS ====================
+
+  /// Xóa toàn bộ dữ liệu trong database
+  Future<void> clearAllData() async {
+    final db = await database;
+    
+    // Xóa tất cả dữ liệu từ các bảng
+    await db.delete(_pomodoroCyclesTable);
+    await db.delete(_sessionsTable);
+    await db.delete(_tasksTable);
+  }
 }

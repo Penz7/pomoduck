@@ -127,13 +127,6 @@ class SettingCubit extends Cubit<SettingState> {
     }
   }
 
-  Future<void> setDefaultCategory(String category) async {
-    final current = state;
-    if (current is SettingLoaded) {
-      await HiveDataManager.updatePreference(defaultTaskCategory: category);
-    }
-  }
-
   Future<void> setNotificationSound(String sound) async {
     await _saveNotificationSoundToCache(sound);
   }

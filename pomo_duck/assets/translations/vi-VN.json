@@ -107,4 +107,8 @@
   "today": "Hôm nay",
   "no_statistics_yet": "Chưa có thống kê",
   "no_statistics_message": "Bắt đầu phiên Pomodoro đầu tiên để xem thống kê ở đây"
+  ,
+  "clear_history": "Xóa lịch sử",
+  "clear_history_message": "Bạn có chắc chắn muốn xóa toàn bộ lịch sử? Hành động này không thể hoàn tác.",
+  "clear": "Xóa"
 }

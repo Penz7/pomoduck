@@ -72,36 +72,17 @@ class _AppState extends State<App> {
                 );
               },
               theme: ThemeData(
-                scaffoldBackgroundColor: UIColors.primaryColor,
+                scaffoldBackgroundColor: UIColors.white,
                 useMaterial3: true,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
                 appBarTheme: const AppBarTheme(
                   surfaceTintColor: Colors.white,
                 ),
-                // fontFamily: 'Biscuit Glitch',
-                textTheme: GoogleFonts.dynaPuffTextTheme(
+                textTheme: GoogleFonts.patrickHandScTextTheme(
                   Theme.of(context).textTheme,
                 ),
-                textSelectionTheme: const TextSelectionThemeData(
-                  cursorColor: UIColors.textColor,
-                ),
-                primaryColor: UIColors.primaryColor,
-                primarySwatch: MaterialColor(
-                  UIColors.primaryColor.value,
-                  <int, Color>{
-                    50: UIColors.primaryColor.withOpacity(0.1),
-                    100: UIColors.primaryColor.withOpacity(0.2),
-                    200: UIColors.primaryColor.withOpacity(0.3),
-                    300: UIColors.primaryColor.withOpacity(0.4),
-                    400: UIColors.primaryColor.withOpacity(0.5),
-                    500: UIColors.primaryColor.withOpacity(0.6),
-                    600: UIColors.primaryColor.withOpacity(0.7),
-                    700: UIColors.primaryColor.withOpacity(0.8),
-                    800: UIColors.primaryColor.withOpacity(0.9),
-                    900: UIColors.primaryColor.withOpacity(1.0),
-                  },
-                ),
               ),
-              // routeInformationParser: _rootRouter.defaultRouteParser(),
               localizationsDelegates: context.localizationDelegates,
               supportedLocales: context.supportedLocales,
               locale: state.locale,

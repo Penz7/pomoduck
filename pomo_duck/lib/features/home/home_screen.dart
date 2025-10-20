@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomo_duck/common/extensions/context_extension.dart';
 import 'package:pomo_duck/common/extensions/router_extension.dart';
 import 'package:pomo_duck/common/extensions/size_extension.dart';
+import 'package:pomo_duck/common/utils/font_size.dart';
+import 'package:pomo_duck/common/widgets/text.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/generated/locale_keys.g.dart';
 
@@ -29,34 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => HomeCubit()),
+        BlocProvider(create: (context) => ConfigPomodoroCubit()),
       ],
       child: Scaffold(
         extendBody: true,
-        backgroundColor: Colors.white,
-        // appBar: AppBar(
-        //   title: Text(LocaleKeys.home.tr()),
-        //   actions: [
-        //     // Timer button
-        //     IconButton(
-        //       icon: const Icon(Icons.timer),
-        //       onPressed: () {
-        //         context.goWithPath('/settings');
-        //       },
-        //     ),
-        //     // Add button change language
-        //     IconButton(
-        //       icon: const Icon(Icons.language),
-        //       onPressed: () {
-        //         final current = context.read<LanguageCubit>().state.locale;
-        //         final next = current.languageCode == 'vi'
-        //             ? const Locale('en', 'US')
-        //             : const Locale('vi', 'VN');
-        //         context.setLocale(next);
-        //         context.read<LanguageCubit>().setNewLanguage(next);
-        //       },
-        //     ),
-        //   ],
-        // ),
         body: BlocListener<HomeCubit, HomeState>(
           listener: (context, state) {
             if (state.isError && state.message != null) {
@@ -82,13 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        LocaleKeys.app_title.tr(),
+                      LCText.bold(
+                        LocaleKeys.app_title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        fontSize: 35,
                       ),
                       50.height,
                       Assets.images.duck.image(
@@ -121,21 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fit: BoxFit.contain,
                                 ),
                                 10.width,
-                                Text(
+                                LCText.medium(
                                   selectTag,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
                                 ),
                                 10.width,
-                                Text(
-                                  '$mm:$ss',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                                LCText.medium('$mm:$ss'),
                                 Assets.images.icRight.image(
                                   width: 20,
                                   height: 20,
@@ -159,11 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: 400,
                                 height: 50,
                               ),
-                              Text(
-                                LocaleKeys.start.tr(),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                ),
+                              LCText.bold(
+                                LocaleKeys.start,
                               ),
                             ],
                           ),
@@ -196,7 +159,7 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
           left: 16,
           right: 16,
           top: 16,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          bottom: ctx.bottomPadding,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -211,12 +174,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                     fit: BoxFit.contain,
                   ),
                   10.width,
-                  Text(
-                    LocaleKeys.pomodoro_settings.tr(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  LCText.bold(
+                    LocaleKeys.pomodoro_settings,
+                    fontSize: FontSizes.big,
                   ),
                 ],
               ),
@@ -229,12 +189,8 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        LocaleKeys.tag.tr(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      LCText.medium(
+                        LocaleKeys.tag,
                       ),
                       10.height,
                       Wrap(
@@ -243,11 +199,20 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                         children: [
                           for (final tag in state.tags)
                             ChoiceChip(
-                              label: Text(tag),
+                              label: LCText.medium(
+                                tag,
+                                color: state.selectedTag == tag
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                              checkmarkColor: state.selectedTag == tag
+                                  ? Colors.white
+                                  : Colors.black,
                               selected: state.selectedTag == tag,
                               onSelected: (_) => context
                                   .read<ConfigPomodoroCubit>()
                                   .selectTag(tag),
+                              selectedColor: Colors.black,
                             ),
                           const _AddTagChip(),
                         ],
@@ -258,33 +223,24 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                         onChanged: (v) => context
                             .read<ConfigPomodoroCubit>()
                             .setStandardMode(v),
-                        title: Text(
-                          LocaleKeys.standard_pomodoro_mode.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        title: LCText.medium(
+                          LocaleKeys.standard_pomodoro_mode,
                         ),
-                        subtitle: Text(
+                        subtitle: LCText.medium(
                           s.isStandardMode
-                              ? LocaleKeys.standard_mode_description.tr()
-                              : LocaleKeys.custom_mode_description.tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
+                              ? LocaleKeys.standard_mode_description
+                              : LocaleKeys.custom_mode_description,
+                          fontSize: FontSizes.extraSmall,
+                          color: Colors.grey.shade600,
+                          maxLines: 5,
                         ),
+                        activeColor: Colors.black,
                         contentPadding: EdgeInsets.zero,
                       ),
                       16.height,
-                      // Pomodoro Cycle Count (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
-                        Text(
-                          LocaleKeys.pomodoro_cycle_count.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        LCText.medium(
+                          LocaleKeys.pomodoro_cycle_count,
                         ),
                         Row(
                           children: [
@@ -303,32 +259,23 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                                 secondaryActiveColor: Colors.black,
                               ),
                             ),
-                            Text(
+                            LCText.medium(
                               '${s.pomodoroCycleCount}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
                             ),
                           ],
                         ),
-                        Text(
-                          LocaleKeys.task_will_complete.tr(namedArgs: {'count': s.pomodoroCycleCount.toString()}),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
+                        LCText.medium(
+                          LocaleKeys.task_will_complete.tr(namedArgs: {
+                            'count': s.pomodoroCycleCount.toString()
+                          }),
+                          fontSize: FontSizes.small,
+                          color: Colors.grey.shade600,
                         ),
                       ],
                       16.height,
-                      // Durations (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
-                        Text(
-                          LocaleKeys.work_duration.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        LCText.medium(
+                          LocaleKeys.work_duration,
                         ),
                         Slider(
                           value: (s.workDuration / 60).clamp(5.0, 200.0),
@@ -343,12 +290,8 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        Text(
-                          LocaleKeys.short_break_duration.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        LCText.medium(
+                          LocaleKeys.short_break_duration,
                         ),
                         Slider(
                           value: (s.shortBreakDuration / 60).clamp(1.0, 30.0),
@@ -363,12 +306,8 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        Text(
-                          LocaleKeys.long_break_duration.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        LCText.medium(
+                          LocaleKeys.long_break_duration,
                         ),
                         Slider(
                           value: (s.longBreakDuration / 60).clamp(5.0, 60.0),
@@ -383,12 +322,8 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        Text(
-                          LocaleKeys.long_break_interval.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        LCText.medium(
+                          LocaleKeys.long_break_interval,
                         ),
                         Slider(
                           value: s.longBreakInterval.toDouble(),
@@ -437,7 +372,7 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
           left: 16,
           right: 16,
           top: 16,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          bottom: ctx.bottomPadding,
         ),
         child: SingleChildScrollView(
           child: Form(
@@ -454,9 +389,9 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                       fit: BoxFit.contain,
                     ),
                     10.width,
-                    Text(
-                      LocaleKeys.start_session.tr(),
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    LCText.bold(
+                      LocaleKeys.start_session,
+                      fontSize: FontSizes.big,
                     ),
                   ],
                 ),
@@ -468,7 +403,10 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                   decoration: InputDecoration(
                     labelText: LocaleKeys.task_title.tr(),
                     border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black,),
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
                     focusColor: Colors.black,
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
@@ -489,12 +427,8 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: Text(
-                          LocaleKeys.cancel.tr(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
+                        child: LCText.bold(
+                          LocaleKeys.cancel,
                         ),
                       ),
                     ),
@@ -503,9 +437,13 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                       child: OutlinedButton(
                         onPressed: () async {
                           if (!formKey.currentState!.validate()) return;
+                          // Lấy pomodoroCycleCount từ cài đặt hiện tại
+                          final configState = context.read<ConfigPomodoroCubit>().state;
+                          final estimatedPomodoros = configState.settings.effectivePomodoroCycleCount;
+                          
                           final task = TaskModel(
                             title: titleCtrl.text.trim(),
-                            estimatedPomodoros: 1,
+                            estimatedPomodoros: estimatedPomodoros,
                             createdAt: DateTime.now(),
                             updatedAt: DateTime.now(),
                             tag: selectedTag,
@@ -522,12 +460,8 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                             ctx.goWithPath('/home/pomodoro');
                           }
                         },
-                        child: Text(
-                          LocaleKeys.start.tr(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
+                        child: LCText.bold(
+                          LocaleKeys.start,
                         ),
                       ),
                     ),
@@ -544,14 +478,12 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
 }
 
 class _AddTagChip extends StatelessWidget {
-  const _AddTagChip({this.onAdded});
-
-  final void Function(String)? onAdded;
+  const _AddTagChip();
 
   @override
   Widget build(BuildContext context) {
     return ActionChip(
-      label: Text(LocaleKeys.add_tag.tr()),
+      label: LCText.medium(LocaleKeys.add_tag),
       onPressed: () async {
         final controller = TextEditingController();
         await showDialog(
@@ -575,7 +507,6 @@ class _AddTagChip extends StatelessWidget {
                     final t = controller.text.trim();
                     if (t.isNotEmpty) {
                       context.read<ConfigPomodoroCubit>().addTag(t);
-                      onAdded?.call(t);
                     }
                     Navigator.of(dCtx).pop();
                   },
