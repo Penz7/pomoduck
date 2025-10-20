@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:pomo_duck/common/utils/time_format.dart';
 import 'package:pomo_duck/data/models/session_model.dart';
 import 'package:pomo_duck/data/models/task_model.dart';
 import 'package:pomo_duck/data/database/database_helper.dart';
@@ -18,21 +19,10 @@ class HistoryScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
+          centerTitle: true,
           title: Text(LocaleKeys.history.tr()),
           backgroundColor: Colors.white,
           elevation: 0,
-          actions: [
-            BlocBuilder<HistoryCubit, HistoryState>(
-              builder: (context, state) {
-                return IconButton(
-                  onPressed: () {
-                    context.read<HistoryCubit>().refresh();
-                  },
-                  icon: const Icon(Icons.refresh),
-                );
-              },
-            ),
-          ],
         ),
         body: BlocBuilder<HistoryCubit, HistoryState>(
           builder: (context, state) {
@@ -41,7 +31,7 @@ class HistoryScreen extends StatelessWidget {
                 child: CircularProgressIndicator(),
               );
             }
-            
+
             if (state is HistoryError) {
               return Center(
                 child: Column(
@@ -80,9 +70,8 @@ class HistoryScreen extends StatelessWidget {
                 ),
               );
             }
-            
+
             if (state is HistoryLoaded) {
-              // Build unique task list (completed and in-progress)
               final Map<int, TaskModel> taskMap = {};
               for (final item in state.timelineItems) {
                 if (item.type == TimelineItemType.task && item.task != null) {
@@ -90,8 +79,8 @@ class HistoryScreen extends StatelessWidget {
                   if (t.id != null) taskMap[t.id!] = t;
                 }
               }
-          final tasks = taskMap.values.toList()
-            ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+              final tasks = taskMap.values.toList()
+                ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
               return RefreshIndicator(
                 onRefresh: () => context.read<HistoryCubit>().refresh(),
@@ -105,12 +94,12 @@ class HistoryScreen extends StatelessWidget {
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final task = tasks[index];
-                        return _buildTaskRow(context, task);
+                          return _buildTaskRow(context, task);
                         },
                       ),
               );
             }
-            
+
             return const SizedBox.shrink();
           },
         ),
@@ -118,9 +107,6 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-  // Removed statistics UI per new requirements
-
-  /// Build empty state
   Widget _buildEmptyState(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(32),
@@ -153,57 +139,87 @@ class HistoryScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  /// Build timeline item
-  Widget _buildTimelineItem(BuildContext context, TimelineItem item, int index, int totalItems) {
+Widget _buildTaskRow(BuildContext context, TaskModel task) {
+  return _ExpandableTaskRow(task: task);
+}
+
+/// Widget expandable cho task row với dropdown timeline
+class _ExpandableTaskRow extends StatefulWidget {
+  const _ExpandableTaskRow({required this.task});
+
+  final TaskModel task;
+
+  @override
+  State<_ExpandableTaskRow> createState() => _ExpandableTaskRowState();
+}
+
+class _ExpandableTaskRowState extends State<_ExpandableTaskRow>
+    with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+  late AnimationController _animationController;
+  late Animation<double> _expandAnimation;
+  List<SessionModel> _sessions = [];
+  bool _isLoadingSessions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleExpanded() async {
+    if (!_isExpanded) {
+      // Load sessions khi expand lần đầu
+      if (_sessions.isEmpty && !_isLoadingSessions) {
+        setState(() {
+          _isLoadingSessions = true;
+        });
+
+        try {
+          final sessions = await DatabaseHelper.instance
+              .getSessionsByTaskId(widget.task.id!);
+          setState(() {
+            _sessions = sessions;
+            _isLoadingSessions = false;
+          });
+        } catch (e) {
+          setState(() {
+            _isLoadingSessions = false;
+          });
+        }
+      }
+    }
+
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+
+    if (_isExpanded) {
+      _animationController.forward();
+    } else {
+      _animationController.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Timeline line
-          Column(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: item.isCompleted ? Colors.green : Colors.orange,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              if (index < totalItems - 1)
-                Container(
-                  width: 2,
-                  height: 60,
-                  color: Colors.grey.shade300,
-                ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          // Content
-          Expanded(
-            child: _buildTimelineContent(context, item),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build timeline content based on item type
-  Widget _buildTimelineContent(BuildContext context, TimelineItem item) {
-    if (item.type == TimelineItemType.task && item.task != null) {
-      return _buildTaskItem(context, item.task!);
-    } else if (item.type == TimelineItemType.session && item.session != null) {
-      return _buildSessionItem(context, item.session!);
-    }
-    return const SizedBox.shrink();
-  }
-
-  /// Build task timeline item
-  Widget _buildTaskItem(BuildContext context, TaskModel task) {
-    return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -216,293 +232,249 @@ class HistoryScreen extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.task_alt,
-                color: task.isCompleted ? Colors.green : Colors.blue,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  task.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: task.isCompleted ? Colors.green : Colors.grey.shade800,
-                  ),
-                ),
-              ),
-              if (task.tag != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    task.tag!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                LocaleKeys.pomodoros_count.tr(namedArgs: {
-                  'completed': task.completedPomodoros.toString(),
-                  'estimated': task.estimatedPomodoros.toString(),
-                }),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: () async {
-                  // Navigate to task timeline detail
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => TaskTimelineScreen(task: task),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.timeline, size: 16),
-                label: Text(LocaleKeys.view_timeline.tr()),
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build session timeline item
-  Widget _buildSessionItem(BuildContext context, SessionModel session) {
-    final duration = session.actualDuration ?? session.plannedDuration;
-    final durationText = _formatDuration(duration);
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                _getSessionIcon(session.sessionType),
-                color: _getSessionColor(session.sessionType),
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _getSessionTitle(session.sessionType),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: session.isCompleted ? Colors.green : Colors.grey.shade800,
-                  ),
-                ),
-              ),
-              if (session.tag != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getSessionColor(session.sessionType).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    session.tag!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: _getSessionColor(session.sessionType),
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 8),
-              if (session.taskId != null)
-                Text(
-                  '#${session.taskId}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                LocaleKeys.duration_label.tr(namedArgs: {'duration': durationText}),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                _formatDateTime(session.createdAt),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
-          ),
-          if (session.startTime != null && session.endTime != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${_formatTime(session.startTime!)} - ${_formatTime(session.endTime!)}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-              ),
+          // Task header
+          ListTile(
+            leading: Icon(
+              widget.task.isCompleted
+                  ? Icons.check_circle
+                  : Icons.radio_button_checked,
+              color: widget.task.isCompleted ? Colors.green : Colors.orange,
             ),
-          ],
+            title: Text(
+              widget.task.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Row(
+              children: [
+                if (widget.task.tag != null) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      widget.task.tag!,
+                      style: const TextStyle(fontSize: 12, color: Colors.blue),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  LocaleKeys.pomodoros_count.tr(namedArgs: {
+                    'completed': widget.task.completedPomodoros.toString(),
+                    'estimated': widget.task.estimatedPomodoros.toString(),
+                  }),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+            trailing: AnimatedRotation(
+              turns: _isExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: const Icon(Icons.keyboard_arrow_down),
+            ),
+            onTap: _toggleExpanded,
+          ),
+
+          // Expandable timeline
+          SizeTransition(
+            sizeFactor: _expandAnimation,
+            child: _buildTimelineContent(),
+          ),
         ],
       ),
     );
   }
 
-  /// Get session icon based on type
-  IconData _getSessionIcon(SessionType type) {
-    switch (type) {
-      case SessionType.work:
-        return Icons.work;
-      case SessionType.shortBreak:
-        return Icons.coffee;
-      case SessionType.longBreak:
-        return Icons.restaurant;
+  Widget _buildTimelineContent() {
+    if (_isLoadingSessions) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
-  }
 
-  /// Get session color based on type
-  Color _getSessionColor(SessionType type) {
-    switch (type) {
-      case SessionType.work:
-        return Colors.blue;
-      case SessionType.shortBreak:
-        return Colors.orange;
-      case SessionType.longBreak:
-        return Colors.green;
+    if (_sessions.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Text(
+            LocaleKeys.no_sessions_for_task.tr(),
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      );
     }
-  }
 
-  /// Get session title based on type
-  String _getSessionTitle(SessionType type) {
-    switch (type) {
-      case SessionType.work:
-        return LocaleKeys.work_session.tr();
-      case SessionType.shortBreak:
-        return LocaleKeys.short_break.tr();
-      case SessionType.longBreak:
-        return LocaleKeys.long_break.tr();
-    }
-  }
+    // Sort sessions theo thời gian
+    final sortedSessions = List<SessionModel>.from(_sessions)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-  /// Format duration in seconds to readable format
-  String _formatDuration(int seconds) {
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
-    final secs = seconds % 60;
-    
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    } else if (minutes > 0) {
-      return '${minutes}m ${secs}s';
-    } else {
-      return '${secs}s';
-    }
-  }
-
-  /// Format DateTime to readable string
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    
-    if (dateOnly == today) {
-      return LocaleKeys.today_time.tr(namedArgs: {'time': _formatTime(dateTime)});
-    } else {
-      return LocaleKeys.date_time.tr(namedArgs: {
-        'day': dateTime.day.toString(),
-        'month': dateTime.month.toString(),
-        'time': _formatTime(dateTime),
-      });
-    }
-  }
-
-  /// Format time to HH:mm format
-  String _formatTime(DateTime dateTime) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    return _TaskTimelineWidget(
+      task: widget.task,
+      sessions: sortedSessions,
+    );
   }
 }
 
-/// Compact row item for a task in the history list
-Widget _buildTaskRow(BuildContext context, TaskModel task) {
-  return ListTile(
-    tileColor: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    leading: Icon(
-      task.isCompleted ? Icons.check_circle : Icons.radio_button_checked,
-      color: task.isCompleted ? Colors.green : Colors.orange,
-    ),
-    title: Text(
-      task.title,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontWeight: FontWeight.w600),
-    ),
-    subtitle: Row(
-      children: [
-        if (task.tag != null) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(task.tag!, style: const TextStyle(fontSize: 12, color: Colors.blue)),
-          ),
-          const SizedBox(width: 8),
+/// Widget hiển thị timeline với visual progress
+class _TaskTimelineWidget extends StatelessWidget {
+  const _TaskTimelineWidget({
+    required this.task,
+    required this.sessions,
+  });
+
+  final TaskModel task;
+  final List<SessionModel> sessions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Progress indicator
+          _buildProgressIndicator(),
+          const SizedBox(height: 16),
+
+          // Timeline sessions
+          _buildTimelineSessions(),
+
+          // Task completion status
+          if (!task.isCompleted) _buildIncompleteTaskIndicator(),
         ],
-        Text(
-          LocaleKeys.pomodoros_count.tr(namedArgs: {
-            'completed': task.completedPomodoros.toString(),
-            'estimated': task.estimatedPomodoros.toString(),
-          }),
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    final progress = task.estimatedPomodoros > 0
+        ? task.completedPomodoros / task.estimatedPomodoros
+        : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              LocaleKeys.progress_label.tr(namedArgs: {
+                'completed': task.completedPomodoros.toString(),
+                'estimated': task.estimatedPomodoros.toString(),
+              }),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              '${(progress * 100).toInt()}%',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: progress,
+          backgroundColor: Colors.grey.shade300,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            progress >= 1.0 ? Colors.green : Colors.blue,
+          ),
         ),
       ],
-    ),
-    trailing: const Icon(Icons.chevron_right),
-    onTap: () async {
-      await Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => TaskTimelineScreen(task: task)),
-      );
-    },
-  );
+    );
+  }
+
+  Widget _buildTimelineSessions() {
+    if (sessions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          LocaleKeys.timeline_sessions.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...sessions.asMap().entries.map((entry) {
+          final index = entry.key;
+          final session = entry.value;
+          final isLast = index == sessions.length - 1;
+
+          return _TimelineSessionItem(
+            session: session,
+            isLast: isLast,
+            showConnector: !isLast,
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildIncompleteTaskIndicator() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.schedule,
+            color: Colors.orange.shade600,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              LocaleKeys.task_incomplete.tr(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.orange.shade700,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.pending_actions,
+            color: Colors.orange.shade600,
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class TaskTimelineScreen extends StatelessWidget {
@@ -553,15 +525,22 @@ class TaskTimelineScreen extends StatelessWidget {
 }
 
 class _TimelineSessionItem extends StatelessWidget {
-  const _TimelineSessionItem({required this.session});
+  const _TimelineSessionItem({
+    required this.session,
+    this.isLast = false,
+    this.showConnector = true,
+  });
+
   final SessionModel session;
+  final bool isLast;
+  final bool showConnector;
 
   @override
   Widget build(BuildContext context) {
     final duration = session.actualDuration ?? session.plannedDuration;
-    final durationText = _HistoryFormat.formatDuration(duration);
+    final durationText = TimeFormat.instance.formatDuration(duration);
 
-    Color _colorFor(SessionType type) {
+    Color colorFor(SessionType type) {
       switch (type) {
         case SessionType.work:
           return Colors.blue;
@@ -572,7 +551,7 @@ class _TimelineSessionItem extends StatelessWidget {
       }
     }
 
-    IconData _iconFor(SessionType type) {
+    IconData iconFor(SessionType type) {
       switch (type) {
         case SessionType.work:
           return Icons.work;
@@ -583,75 +562,147 @@ class _TimelineSessionItem extends StatelessWidget {
       }
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.grey.shade200, blurRadius: 4, offset: const Offset(0, 1)),
-        ],
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(_iconFor(session.sessionType), color: _colorFor(session.sessionType), size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              () {
-                switch (session.sessionType) {
-                  case SessionType.work:
-                    return LocaleKeys.work_session.tr();
-                  case SessionType.shortBreak:
-                    return LocaleKeys.short_break.tr();
-                  case SessionType.longBreak:
-                    return LocaleKeys.long_break.tr();
-                }
-              }(),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: session.isCompleted ? Colors.green : Colors.grey.shade800),
+    final sessionColor = colorFor(session.sessionType);
+    final isCompleted = session.isCompleted;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Timeline indicator
+        Column(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: isCompleted ? sessionColor : Colors.grey.shade300,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isCompleted ? sessionColor : Colors.grey.shade400,
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                isCompleted ? Icons.check : iconFor(session.sessionType),
+                size: 12,
+                color: isCompleted ? Colors.white : Colors.grey.shade600,
+              ),
+            ),
+            if (showConnector)
+              Container(
+                width: 2,
+                height: 40,
+                color: Colors.grey.shade300,
+                margin: const EdgeInsets.only(top: 4),
+              ),
+          ],
+        ),
+
+        const SizedBox(width: 12),
+
+        // Session content
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.only(bottom: showConnector ? 16 : 0),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isCompleted
+                  ? sessionColor.withOpacity(0.1)
+                  : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isCompleted
+                    ? sessionColor.withOpacity(0.3)
+                    : Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      iconFor(session.sessionType),
+                      color: isCompleted ? sessionColor : Colors.grey.shade600,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        () {
+                          switch (session.sessionType) {
+                            case SessionType.work:
+                              return LocaleKeys.work_session.tr();
+                            case SessionType.shortBreak:
+                              return LocaleKeys.short_break.tr();
+                            case SessionType.longBreak:
+                              return LocaleKeys.long_break.tr();
+                          }
+                        }(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isCompleted ? sessionColor : Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                    if (session.tag != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: sessionColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          session.tag!,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: sessionColor,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(
+                      LocaleKeys.duration_label
+                          .tr(namedArgs: {'duration': durationText}),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      TimeFormat.instance.formatDateTime(session.createdAt),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+                if (session.startTime != null && session.endTime != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${TimeFormat.instance.formatTime(session.startTime!)} - ${TimeFormat.instance.formatTime(session.endTime!)}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          if (session.tag != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: _colorFor(session.sessionType).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-              child: Text(session.tag!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _colorFor(session.sessionType))),
-            ),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          Text(LocaleKeys.duration_label.tr(namedArgs: {'duration': durationText}), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
-          const Spacer(),
-          Text(_HistoryFormat.formatDateTime(session.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-        ]),
-        if (session.startTime != null && session.endTime != null) ...[
-          const SizedBox(height: 4),
-          Text('${_HistoryFormat.formatTime(session.startTime!)} - ${_HistoryFormat.formatTime(session.endTime!)}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-        ],
-      ]),
+        ),
+      ],
     );
-  }
-}
-
-class _HistoryFormat {
-  static String formatDuration(int seconds) {
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
-    final secs = seconds % 60;
-    if (hours > 0) return '${hours}h ${minutes}m';
-    if (minutes > 0) return '${minutes}m ${secs}s';
-    return '${secs}s';
-  }
-
-  static String formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    if (dateOnly == today) return 'Today ${formatTime(dateTime)}';
-    return '${dateTime.day}/${dateTime.month} ${formatTime(dateTime)}';
-  }
-
-  static String formatTime(DateTime dateTime) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -15,7 +15,39 @@ class SettingScreen extends StatefulWidget {
   State<SettingScreen> createState() => _SettingScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen> {
+class _SettingScreenState extends State<SettingScreen> 
+    with TickerProviderStateMixin {
+  bool _isChangingLanguage = false;
+  String? _lastLanguageChange;
+  DateTime? _lastChangeTime;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Start with visible state
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -36,31 +68,78 @@ class _SettingScreenState extends State<SettingScreen> {
             final tags = loaded.pomodoroTags;
 
             Future<void> changeLanguage(String v) async {
-              await context.read<SettingCubit>().changeLanguage(v);
-              final locale = v == 'en' ? const Locale('en', 'US') : const Locale('vi', 'VN');
-              await context.setLocale(locale);
-              if (!mounted) return;
-              context.read<LanguageCubit>().setNewLanguage(locale);
+              // Debouncing: ignore if same language or too recent
+              final now = DateTime.now();
+              if (_lastLanguageChange == v && 
+                  _lastChangeTime != null && 
+                  now.difference(_lastChangeTime!).inMilliseconds < 1000) {
+                return;
+              }
+              
+              // Show loading state
+              setState(() {
+                _isChangingLanguage = true;
+                _lastLanguageChange = v;
+                _lastChangeTime = now;
+              });
+              
+              try {
+                final locale = v == 'en' ? const Locale('en', 'US') : const Locale('vi', 'VN');
+                
+                // Start fade out animation
+                _animationController.reverse();
+                
+                // Batch all operations together
+                await Future.wait([
+                  context.read<SettingCubit>().changeLanguage(v),
+                  context.setLocale(locale),
+                ]);
+                
+                if (!mounted) return;
+                
+                // Update LanguageCubit without additional Hive write
+                if (mounted) {
+                  context.read<LanguageCubit>().setNewLanguage(locale);
+                }
+                
+                // Start fade in animation
+                _animationController.forward();
+                
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isChangingLanguage = false;
+                  });
+                }
+              }
             }
 
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
+            return FadeTransition(
+              opacity: _fadeAnimation,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
                 // Language
                 ListTile(
                   title: Text('settings_language'.tr()),
                   subtitle: Text(prefs.language == 'en' ? LocaleKeys.english.tr() : LocaleKeys.vietnamese.tr()),
-                  trailing: DropdownButton<String>(
-                    value: prefs.language,
-                    items: [
-                      DropdownMenuItem(value: 'vi', child: Text(LocaleKeys.vietnamese.tr())),
-                      DropdownMenuItem(value: 'en', child: Text(LocaleKeys.english.tr())),
-                    ],
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      await changeLanguage(v);
-                    },
-                  ),
+                  trailing: _isChangingLanguage 
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : DropdownButton<String>(
+                        value: prefs.language,
+                        items: [
+                          DropdownMenuItem(value: 'vi', child: Text(LocaleKeys.vietnamese.tr())),
+                          DropdownMenuItem(value: 'en', child: Text(LocaleKeys.english.tr())),
+                        ],
+                        onChanged: _isChangingLanguage ? null : (v) async {
+                          if (v == null) return;
+                          await changeLanguage(v);
+                        },
+                      ),
                 ),
                 const Divider(),
 
@@ -231,6 +310,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 ),
                 context.bottomPadding.height,
               ],
+            ),
             );
           },
         ),

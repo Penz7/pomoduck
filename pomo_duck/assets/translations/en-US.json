@@ -100,5 +100,9 @@
   "motivation_messages_5_primary": "No one starts off being great – but those who keep going get there.",
   "motivation_messages_5_secondary": "👉 We all start somewhere. Just don't stop.",
   "motivation_messages_6_primary": "It's okay to go slow – just don't stop.",
-  "motivation_messages_6_secondary": "👉 Slow progress is still progress. Keep moving."
+  "motivation_messages_6_secondary": "👉 Slow progress is still progress. Keep moving.",
+  "timeline_sessions": "Timeline Sessions:",
+  "task_incomplete": "Task not completed",
+  "progress_label": "Progress: {completed}/{estimated}",
+  "today": "Today"
 }

@@ -105,5 +105,8 @@ abstract class  LocaleKeys {
   static const motivation_messages_5_secondary = 'motivation_messages_5_secondary';
   static const motivation_messages_6_primary = 'motivation_messages_6_primary';
   static const motivation_messages_6_secondary = 'motivation_messages_6_secondary';
+  static const timeline_sessions = 'timeline_sessions';
+  static const task_incomplete = 'task_incomplete';
+  static const progress_label = 'progress_label';
 
 }

@@ -116,7 +116,10 @@ class CodegenLoader extends AssetLoader{
   "motivation_messages_5_primary": "No one starts off being great – but those who keep going get there.",
   "motivation_messages_5_secondary": "👉 We all start somewhere. Just don't stop.",
   "motivation_messages_6_primary": "It's okay to go slow – just don't stop.",
-  "motivation_messages_6_secondary": "👉 Slow progress is still progress. Keep moving."
+  "motivation_messages_6_secondary": "👉 Slow progress is still progress. Keep moving.",
+  "timeline_sessions": "Timeline Sessions:",
+  "task_incomplete": "Task not completed",
+  "progress_label": "Progress: {completed}/{estimated}"
 };
 static const Map<String,dynamic> _vi_VN = {
   "home": "Trang chủ",
@@ -220,7 +223,10 @@ static const Map<String,dynamic> _vi_VN = {
   "motivation_messages_5_primary": "Không ai bắt đầu đã giỏi – nhưng những người tiếp tục sẽ đạt được điều đó.",
   "motivation_messages_5_secondary": "👉 Tất cả chúng ta đều bắt đầu từ đâu đó. Chỉ cần đừng dừng lại.",
   "motivation_messages_6_primary": "Đi chậm cũng không sao – chỉ cần đừng dừng lại.",
-  "motivation_messages_6_secondary": "👉 Tiến bộ chậm vẫn là tiến bộ. Hãy tiếp tục di chuyển."
+  "motivation_messages_6_secondary": "👉 Tiến bộ chậm vẫn là tiến bộ. Hãy tiếp tục di chuyển.",
+  "timeline_sessions": "Timeline Sessions:",
+  "task_incomplete": "Task chưa hoàn thành",
+  "progress_label": "Tiến độ: {completed}/{estimated}"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en_US": _en_US, "vi_VN": _vi_VN};
 }
