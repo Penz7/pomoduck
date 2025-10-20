@@ -104,5 +104,7 @@
   "timeline_sessions": "Timeline Sessions:",
   "task_incomplete": "Task chưa hoàn thành",
   "progress_label": "Tiến độ: {completed}/{estimated}",
-  "today": "Hôm nay"
+  "today": "Hôm nay",
+  "no_statistics_yet": "Chưa có thống kê",
+  "no_statistics_message": "Bắt đầu phiên Pomodoro đầu tiên để xem thống kê ở đây"
 }

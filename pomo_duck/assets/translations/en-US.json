@@ -104,5 +104,7 @@
   "timeline_sessions": "Timeline Sessions:",
   "task_incomplete": "Task not completed",
   "progress_label": "Progress: {completed}/{estimated}",
-  "today": "Today"
+  "today": "Today",
+  "no_statistics_yet": "No statistics yet",
+  "no_statistics_message": "Start your first Pomodoro session to see your statistics here"
 }

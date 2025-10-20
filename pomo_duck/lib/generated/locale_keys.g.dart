@@ -108,5 +108,7 @@ abstract class  LocaleKeys {
   static const timeline_sessions = 'timeline_sessions';
   static const task_incomplete = 'task_incomplete';
   static const progress_label = 'progress_label';
+  static const no_statistics_yet = 'no_statistics_yet';
+  static const no_statistics_message = 'no_statistics_message';
 
 }

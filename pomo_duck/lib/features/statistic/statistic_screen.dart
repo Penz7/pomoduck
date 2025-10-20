@@ -14,13 +14,9 @@ class StatisticScreen extends StatelessWidget {
     }, child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text(LocaleKeys.statistic.tr()),
-        actions: [
-          IconButton(
-            onPressed: () => context.read<StatisticCubit>().loadAll(),
-            icon: const Icon(Icons.refresh),
-          )
-        ],
+        centerTitle: true,
       ),
       body: BlocBuilder<StatisticCubit, StatisticState>(
         builder: (context, state) {
@@ -46,6 +42,25 @@ class StatisticScreen extends StatelessWidget {
           }
 
           final loaded = state as StatisticLoaded;
+          
+          // Check if all data is empty
+          final hasData = loaded.todayStats.isNotEmpty || 
+                          loaded.overallStats.isNotEmpty || 
+                          loaded.analytics.isNotEmpty || 
+                          loaded.realtime.isNotEmpty || 
+                          loaded.predictions.isNotEmpty;
+          
+          if (!hasData) {
+            return RefreshIndicator(
+              onRefresh: () => context.read<StatisticCubit>().loadAll(),
+              child: ListView(
+                children: [
+                  _buildEmptyState(context),
+                ],
+              ),
+            );
+          }
+          
           return RefreshIndicator(
             onRefresh: () => context.read<StatisticCubit>().loadAll(),
             child: ListView(
@@ -271,4 +286,37 @@ class _ToggleSectionState extends State<_ToggleSection> {
       ],
     );
   }
+}
+
+Widget _buildEmptyState(BuildContext context) {
+  return Container(
+    margin: const EdgeInsets.all(32),
+    child: Column(
+      children: [
+        Icon(
+          Icons.analytics_outlined,
+          size: 64,
+          color: Colors.grey.shade400,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          LocaleKeys.no_statistics_yet.tr(),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          LocaleKeys.no_statistics_message.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade500,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    ),
+  );
 }

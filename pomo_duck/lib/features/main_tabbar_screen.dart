@@ -7,8 +7,6 @@ import 'package:pomo_duck/common/extensions/context_extension.dart';
 import '../common/theme/colors.dart';
 import '../common/theme/config_helper.dart';
 
-
-
 class MainTabBarScreen extends StatefulWidget {
   const MainTabBarScreen({
     required this.navigationShell,
@@ -54,22 +52,12 @@ class _MainTabBarState extends State<MainTabBarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: widget.navigationShell,
       bottomNavigationBar: Container(
         padding: EdgeInsets.only(
           bottom: context.bottomPadding,
         ),
-        decoration: BoxDecoration(
-          color: UIColors.white,
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: UIColors.black.withOpacity(0.15),
-          //     offset: const Offset(0, 2),
-          //     blurRadius: 8,
-          //   ),
-          // ],
-        ),
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(

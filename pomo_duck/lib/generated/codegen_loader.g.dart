@@ -119,7 +119,9 @@ class CodegenLoader extends AssetLoader{
   "motivation_messages_6_secondary": "👉 Slow progress is still progress. Keep moving.",
   "timeline_sessions": "Timeline Sessions:",
   "task_incomplete": "Task not completed",
-  "progress_label": "Progress: {completed}/{estimated}"
+  "progress_label": "Progress: {completed}/{estimated}",
+  "no_statistics_yet": "No statistics yet",
+  "no_statistics_message": "Start your first Pomodoro session to see your statistics here"
 };
 static const Map<String,dynamic> _vi_VN = {
   "home": "Trang chủ",
@@ -226,7 +228,9 @@ static const Map<String,dynamic> _vi_VN = {
   "motivation_messages_6_secondary": "👉 Tiến bộ chậm vẫn là tiến bộ. Hãy tiếp tục di chuyển.",
   "timeline_sessions": "Timeline Sessions:",
   "task_incomplete": "Task chưa hoàn thành",
-  "progress_label": "Tiến độ: {completed}/{estimated}"
+  "progress_label": "Tiến độ: {completed}/{estimated}",
+  "no_statistics_yet": "Chưa có thống kê",
+  "no_statistics_message": "Bắt đầu phiên Pomodoro đầu tiên để xem thống kê ở đây"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en_US": _en_US, "vi_VN": _vi_VN};
 }
