@@ -1,4 +1,124 @@
-{
+// DO NOT EDIT. This is code generated via package:easy_localization/generate.dart
+
+// ignore_for_file: prefer_single_quotes, avoid_renaming_method_parameters, constant_identifier_names
+
+import 'dart:ui';
+
+import 'package:easy_localization/easy_localization.dart' show AssetLoader;
+
+class CodegenLoader extends AssetLoader{
+  const CodegenLoader();
+
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) {
+    return Future.value(mapLocales[locale.toString()]);
+  }
+
+  static const Map<String,dynamic> _en_US = {
+  "home": "Home",
+  "app_title": "Pomo Duck",
+  "start": "Start",
+  "resume": "Resume",
+  "stop": "Stop",
+  "cancel": "Cancel",
+  "retry": "Retry",
+  "add": "Add",
+  "great": "Great!",
+  "focus": "Focus",
+  "short_break": "Short Break",
+  "long_break": "Long Break",
+  "work_session": "Work Session",
+  "quack": "Quack!!!",
+  "hmmmmm": "Hmmmmm!",
+  "task_completed": "Task Completed!",
+  "task_completed_message": "Congratulations! You have successfully completed all pomodoro sessions for this task.",
+  "pomodoro_settings": "Pomodoro Settings",
+  "tag": "Tag",
+  "add_tag": "+ Add tag",
+  "add_new_tag": "Add new tag",
+  "enter_tag_name": "Enter tag name",
+  "task_title": "Task title",
+  "start_session": "Start Session",
+  "standard_pomodoro_mode": "Standard Pomodoro Mode",
+  "standard_mode_description": "Following Francesco Cirillo's original technique (25min work, 5min break, 15min long break after 4 pomodoros)",
+  "custom_mode_description": "Custom mode - Adjustable durations and cycle count",
+  "pomodoro_cycle_count": "Pomodoro Cycle Count",
+  "work_duration": "Work Duration (minutes)",
+  "short_break_duration": "Short Break Duration (minutes)",
+  "long_break_duration": "Long Break Duration (minutes)",
+  "long_break_interval": "Long Break Interval",
+  "task_will_complete": "Task will be completed after {count} pomodoro work sessions",
+  "pomodoros": "Pomodoros",
+  "duration": "Duration",
+  "today": "Today",
+  "no_data": "No data",
+  "no_history_yet": "No history yet",
+  "no_history_message": "Start your first Pomodoro session to see your history here",
+  "error_loading_history": "Error loading history",
+  "failed_to_load_timeline": "Failed to load timeline",
+  "view_timeline": "View timeline",
+  "statistic": "Statistic",
+  "today_stats": "Today Stats",
+  "realtime_metrics": "Realtime Metrics",
+  "overall_stats": "Overall Stats",
+  "analytics_basic": "Analytics (Basic)",
+  "patterns": "Patterns",
+  "performance": "Performance",
+  "focus_analysis": "Focus Analysis",
+  "predictions": "Predictions",
+  "grid": "Grid",
+  "chart": "Chart",
+  "english": "English",
+  "vietnamese": "Tiếng Việt",
+  "history": "History",
+  "pomodoros_count": "Pomodoros: {completed}/{estimated}",
+  "duration_label": "Duration: {duration}",
+  "today_time": "Today {time}",
+  "date_time": "{day}/{month} {time}",
+  "no_sessions_for_task": "No sessions for this task",
+  "settings_title": "Settings",
+  "settings_language": "Language",
+  "settings_dark_mode": "Dark Mode",
+  "settings_notifications": "Notifications",
+  "settings_haptic": "Haptic Feedback",
+  "settings_date_format": "Date Format",
+  "settings_time_format": "Time Format",
+  "settings_notification_sound": "Notification Sound",
+  "settings_show_task_progress": "Show Task Progress",
+  "settings_show_daily_stats": "Show Daily Stats",
+  "settings_show_pomodoro_counter": "Show Pomodoro Counter",
+  "settings_show_session_progress": "Show Session Progress",
+  "settings_default_category": "Default Category",
+  "date_format_dd_mm_yyyy": "dd/MM/yyyy",
+  "date_format_mm_dd_yyyy": "MM/dd/yyyy",
+  "date_format_yyyy_mm_dd": "yyyy-MM-dd",
+  "time_format_24h": "24h",
+  "time_format_12h": "12h",
+  "notification_sound_default": "Default",
+  "notification_sound_soft": "Soft",
+  "notification_sound_bell": "Bell",
+  "notification_sound_ding": "Ding",
+  "pause_quotes_0": "Hey, I see you slowing down... Don't give up now — you've come too far to quit.",
+  "pause_quotes_1": "Looks like you've hit a wall — that's okay. Just don't stay stuck there.",
+  "pause_quotes_2": "You've paused long enough. Time to get back up and keep going.",
+  "pause_quotes_3": "You didn't come this far just to stop now, right? Let's keep pushing.",
+  "pause_quotes_4": "It's okay to rest, but don't forget why you started.",
+  "motivation_messages_0_primary": "The future belongs to those who don't give up today.",
+  "motivation_messages_0_secondary": "👉 Stick with it now, and your future self will thank you.",
+  "motivation_messages_1_primary": "As long as you're trying, you're already ahead of most people.",
+  "motivation_messages_1_secondary": "👉 Even showing up counts – don't forget that.",
+  "motivation_messages_2_primary": "Tough times don't last, but tough people do.",
+  "motivation_messages_2_secondary": "👉 You're stronger than you think. For real.",
+  "motivation_messages_3_primary": "Every day's a new shot to get closer to where you wanna be.",
+  "motivation_messages_3_secondary": "👉 Take it one day at a time – that's all it takes.",
+  "motivation_messages_4_primary": "Don't let a bad moment ruin your long-term goal.",
+  "motivation_messages_4_secondary": "👉 Feel it, deal with it, but don't lose sight of the big picture.",
+  "motivation_messages_5_primary": "No one starts off being great – but those who keep going get there.",
+  "motivation_messages_5_secondary": "👉 We all start somewhere. Just don't stop.",
+  "motivation_messages_6_primary": "It's okay to go slow – just don't stop.",
+  "motivation_messages_6_secondary": "👉 Slow progress is still progress. Keep moving."
+};
+static const Map<String,dynamic> _vi_VN = {
   "home": "Trang chủ",
   "app_title": "Pomo Duck",
   "start": "Bắt đầu",
@@ -101,4 +221,6 @@
   "motivation_messages_5_secondary": "👉 Tất cả chúng ta đều bắt đầu từ đâu đó. Chỉ cần đừng dừng lại.",
   "motivation_messages_6_primary": "Đi chậm cũng không sao – chỉ cần đừng dừng lại.",
   "motivation_messages_6_secondary": "👉 Tiến bộ chậm vẫn là tiến bộ. Hãy tiếp tục di chuyển."
+};
+static const Map<String, Map<String,dynamic>> mapLocales = {"en_US": _en_US, "vi_VN": _vi_VN};
 }

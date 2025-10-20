@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:pomo_duck/features/statistic/statistic_cubit.dart';
+import 'package:pomo_duck/generated/locale_keys.g.dart';
 
 class StatisticScreen extends StatelessWidget {
   const StatisticScreen({super.key});
@@ -12,7 +14,7 @@ class StatisticScreen extends StatelessWidget {
     }, child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Statistic'),
+        title: Text(LocaleKeys.statistic.tr()),
         actions: [
           IconButton(
             onPressed: () => context.read<StatisticCubit>().loadAll(),
@@ -36,7 +38,7 @@ class StatisticScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => context.read<StatisticCubit>().loadAll(),
-                    child: const Text('Retry'),
+                    child: Text(LocaleKeys.retry.tr()),
                   )
                 ],
               ),
@@ -49,30 +51,30 @@ class StatisticScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _Section(title: 'Today Stats', child: _KeyValueGrid(map: loaded.todayStats)),
+                _Section(title: LocaleKeys.today_stats.tr(), child: _KeyValueGrid(map: loaded.todayStats)),
                 const SizedBox(height: 12),
-                _Section(title: 'Realtime Metrics', child: _KeyValueGrid(map: loaded.realtime)),
+                _Section(title: LocaleKeys.realtime_metrics.tr(), child: _KeyValueGrid(map: loaded.realtime)),
                 const SizedBox(height: 12),
-                _Section(title: 'Overall Stats', child: _KeyValueGrid(map: loaded.overallStats)),
+                _Section(title: LocaleKeys.overall_stats.tr(), child: _KeyValueGrid(map: loaded.overallStats)),
                 const SizedBox(height: 12),
-                _Section(title: 'Analytics (Basic)', child: _KeyValueGrid(map: loaded.analytics['basic'] as Map<String, dynamic>? ?? {})),
+                _Section(title: LocaleKeys.analytics_basic.tr(), child: _KeyValueGrid(map: loaded.analytics['basic'] as Map<String, dynamic>? ?? {})),
                 const SizedBox(height: 12),
                 _ToggleSection(
-                  title: 'Patterns',
+                  title: LocaleKeys.patterns.tr(),
                   map: loaded.analytics['patterns'] as Map<String, dynamic>? ?? {},
                 ),
                 const SizedBox(height: 12),
                 _ToggleSection(
-                  title: 'Performance',
+                  title: LocaleKeys.performance.tr(),
                   map: loaded.analytics['performance'] as Map<String, dynamic>? ?? {},
                 ),
                 const SizedBox(height: 12),
                 _ToggleSection(
-                  title: 'Focus Analysis',
+                  title: LocaleKeys.focus_analysis.tr(),
                   map: loaded.analytics['focus'] as Map<String, dynamic>? ?? {},
                 ),
                 const SizedBox(height: 12),
-                _Section(title: 'Predictions', child: _KeyValueGrid(map: loaded.predictions)),
+                _Section(title: LocaleKeys.predictions.tr(), child: _KeyValueGrid(map: loaded.predictions)),
               ],
             ),
           );
@@ -116,7 +118,7 @@ class _KeyValueGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (map.isEmpty) {
-      return const Text('No data');
+      return Text(LocaleKeys.no_data.tr());
     }
     final entries = map.entries.toList();
     return GridView.builder(
@@ -158,13 +160,13 @@ class _BarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (map.isEmpty) return const Text('No data');
+    if (map.isEmpty) return Text(LocaleKeys.no_data.tr());
     // Normalize values to double and positive range
     final entries = map.entries
         .where((e) => e.value is num)
         .map((e) => MapEntry(e.key, (e.value as num).toDouble()))
         .toList();
-    if (entries.isEmpty) return const Text('No numeric data');
+    if (entries.isEmpty) return Text(LocaleKeys.no_data.tr());
     final maxVal = entries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
     final barColor = Theme.of(context).colorScheme.primary;
 
@@ -247,12 +249,12 @@ class _ToggleSectionState extends State<_ToggleSection> {
           children: [
             Text(widget.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             Row(children: [
-              const Text('Grid', style: TextStyle(fontSize: 12)),
+              Text(LocaleKeys.grid.tr(), style: const TextStyle(fontSize: 12)),
               Switch(
                 value: showChart,
                 onChanged: (v) => setState(() => showChart = v),
               ),
-              const Text('Chart', style: TextStyle(fontSize: 12)),
+              Text(LocaleKeys.chart.tr(), style: const TextStyle(fontSize: 12)),
             ])
           ],
         ),

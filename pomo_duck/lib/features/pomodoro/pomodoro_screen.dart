@@ -2,21 +2,23 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/features/pomodoro/pomodoro_cubit.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cubit.dart';
+import 'package:pomo_duck/generated/locale_keys.g.dart';
 
 class PomodoroScreen extends StatelessWidget {
   const PomodoroScreen({super.key});
 
-  static const List<String> _pauseQuotes = [
-    'Hey, I see you slowing down... Don’t give up now — you’ve come too far to quit.',
-    "Looks like you’ve hit a wall — that’s okay. Just don’t stay stuck there.",
-    "You’ve paused long enough. Time to get back up and keep going.",
-    "You didn’t come this far just to stop now, right? Let’s keep pushing.",
-    "It's okay to rest, but don’t forget why you started.",
-  ];
+  List<String> get _pauseQuotes {
+    final quotes = <String>[];
+    for (int i = 0; i < 5; i++) {
+      quotes.add(tr('pause_quotes_$i'));
+    }
+    return quotes;
+  }
 
   void _showPauseDialog(BuildContext context) {
     // Chọn ngẫu nhiên 1 câu nói khi pause
@@ -27,7 +29,7 @@ class PomodoroScreen extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: const Text('Hmmmmm!'),
+          title: Text(LocaleKeys.hmmmmm.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -47,9 +49,9 @@ class PomodoroScreen extends StatelessWidget {
                 Navigator.of(dialogContext).pop();
                 context.read<PomodoroCubit>().resume();
               },
-              child: const Text(
-                'Resume',
-                style: TextStyle(
+              child: Text(
+                LocaleKeys.resume.tr(),
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black,
                   fontWeight: FontWeight.w600,
@@ -65,9 +67,9 @@ class PomodoroScreen extends StatelessWidget {
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: const Text(
-                'Stop',
-                style: TextStyle(
+              child: Text(
+                LocaleKeys.stop.tr(),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -95,15 +97,15 @@ class PomodoroScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 28),
-              SizedBox(width: 8),
-              Text('Task Completed!'),
+              const Icon(Icons.check_circle, color: Colors.green, size: 28),
+              const SizedBox(width: 8),
+              Text(LocaleKeys.task_completed.tr()),
             ],
           ),
-          content: const Text(
-            'Congratulations! You have successfully completed all pomodoro sessions for this task.',
+          content: Text(
+            LocaleKeys.task_completed_message.tr(),
           ),
           actions: [
             ElevatedButton(
@@ -115,7 +117,7 @@ class PomodoroScreen extends StatelessWidget {
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Great!'),
+              child: Text(LocaleKeys.great.tr()),
             ),
           ],
         );
@@ -155,10 +157,10 @@ class PomodoroScreen extends StatelessWidget {
                             .padLeft(2, '0');
 
                         final title = switch (state.sessionType) {
-                          'work' => 'Focus',
-                          'shortBreak' => 'Short Break',
-                          'longBreak' => 'Long Break',
-                          _ => 'Quack!!!',
+                          'work' => LocaleKeys.focus.tr(),
+                          'shortBreak' => LocaleKeys.short_break.tr(),
+                          'longBreak' => LocaleKeys.long_break.tr(),
+                          _ => LocaleKeys.quack.tr(),
                         };
                         return Column(
                           children: [
@@ -281,39 +283,6 @@ class MotivationMessage {
   const MotivationMessage({required this.primary, this.secondary});
 }
 
-const List<MotivationMessage> _tickerMessages = [
-  MotivationMessage(
-    primary: "The future belongs to those who don’t give up today.",
-    secondary: "👉 Stick with it now, and your future self will thank you.",
-  ),
-  MotivationMessage(
-    primary: "As long as you're trying, you're already ahead of most people.",
-    secondary: "👉 Even showing up counts – don’t forget that.",
-  ),
-  MotivationMessage(
-    primary: "Tough times don’t last, but tough people do.",
-    secondary: "👉 You’re stronger than you think. For real.",
-  ),
-  MotivationMessage(
-    primary: "Every day’s a new shot to get closer to where you wanna be.",
-    secondary: "👉 Take it one day at a time – that’s all it takes.",
-  ),
-  MotivationMessage(
-    primary: "Don’t let a bad moment ruin your long-term goal.",
-    secondary:
-        "👉 Feel it, deal with it, but don’t lose sight of the big picture.",
-  ),
-  MotivationMessage(
-    primary:
-        "No one starts off being great – but those who keep going get there.",
-    secondary: "👉 We all start somewhere. Just don’t stop.",
-  ),
-  MotivationMessage(
-    primary: "It’s okay to go slow – just don’t stop.",
-    secondary: "👉 Slow progress is still progress. Keep moving.",
-  ),
-];
-
 class MotivationTicker extends StatefulWidget {
   const MotivationTicker({super.key});
 
@@ -325,6 +294,17 @@ class _MotivationTickerState extends State<MotivationTicker> {
   final Random _random = Random();
   int _currentIndex = 0;
   Timer? _timer;
+
+  List<MotivationMessage> get _tickerMessages {
+    final messages = <MotivationMessage>[];
+    for (int i = 0; i < 7; i++) {
+      messages.add(MotivationMessage(
+        primary: tr('motivation_messages_${i}_primary'),
+        secondary: tr('motivation_messages_${i}_secondary'),
+      ));
+    }
+    return messages;
+  }
 
   @override
   void initState() {

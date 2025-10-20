@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/local_storage/hive_data_manager.dart';
 import '../../data/models/user_preferences_model.dart';
 import '../../common/global_bloc/language/language_cubit.dart';
+import '../../generated/locale_keys.g.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -40,12 +41,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           ListTile(
             title: Text('settings.language'.tr()),
-            subtitle: Text(_preferences.language == 'en' ? 'English' : 'Tiếng Việt'),
+            subtitle: Text(_preferences.language == 'en' ? LocaleKeys.english.tr() : LocaleKeys.vietnamese.tr()),
             trailing: DropdownButton<String>(
               value: _preferences.language,
-              items: const [
-                DropdownMenuItem(value: 'vi', child: Text('Tiếng Việt')),
-                DropdownMenuItem(value: 'en', child: Text('English')),
+              items: [
+                DropdownMenuItem(value: 'vi', child: Text(LocaleKeys.vietnamese.tr())),
+                DropdownMenuItem(value: 'en', child: Text(LocaleKeys.english.tr())),
               ],
               onChanged: (v) async {
                 if (v == null) return;

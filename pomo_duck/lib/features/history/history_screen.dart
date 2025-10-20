@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:pomo_duck/data/models/session_model.dart';
 import 'package:pomo_duck/data/models/task_model.dart';
 import 'package:pomo_duck/data/database/database_helper.dart';
+import 'package:pomo_duck/generated/locale_keys.g.dart';
 
 import 'history_cubit.dart';
 
@@ -16,7 +18,7 @@ class HistoryScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
-          title: const Text('History'),
+          title: Text(LocaleKeys.history.tr()),
           backgroundColor: Colors.white,
           elevation: 0,
           actions: [
@@ -52,7 +54,7 @@ class HistoryScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Error loading history',
+                      LocaleKeys.error_loading_history.tr(),
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey.shade600,
@@ -72,7 +74,7 @@ class HistoryScreen extends StatelessWidget {
                       onPressed: () {
                         context.read<HistoryCubit>().refresh();
                       },
-                      child: const Text('Retry'),
+                      child: Text(LocaleKeys.retry.tr()),
                     ),
                   ],
                 ),
@@ -89,8 +91,7 @@ class HistoryScreen extends StatelessWidget {
                 }
               }
           final tasks = taskMap.values.toList()
-            ..sort((a, b) => (b.updatedAt ?? b.createdAt)
-                    .compareTo(a.updatedAt ?? a.createdAt));
+            ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
               return RefreshIndicator(
                 onRefresh: () => context.read<HistoryCubit>().refresh(),
@@ -132,7 +133,7 @@ class HistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No history yet',
+            LocaleKeys.no_history_yet.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
@@ -141,7 +142,7 @@ class HistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Start your first Pomodoro session to see your history here',
+            LocaleKeys.no_history_message.tr(),
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade500,
@@ -257,7 +258,10 @@ class HistoryScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Pomodoros: ${task.completedPomodoros}/${task.estimatedPomodoros}',
+                LocaleKeys.pomodoros_count.tr(namedArgs: {
+                  'completed': task.completedPomodoros.toString(),
+                  'estimated': task.estimatedPomodoros.toString(),
+                }),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -274,7 +278,7 @@ class HistoryScreen extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.timeline, size: 16),
-                label: const Text('View timeline'),
+                label: Text(LocaleKeys.view_timeline.tr()),
               )
             ],
           ),
@@ -350,7 +354,7 @@ class HistoryScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Duration: $durationText',
+                LocaleKeys.duration_label.tr(namedArgs: {'duration': durationText}),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -409,11 +413,11 @@ class HistoryScreen extends StatelessWidget {
   String _getSessionTitle(SessionType type) {
     switch (type) {
       case SessionType.work:
-        return 'Work Session';
+        return LocaleKeys.work_session.tr();
       case SessionType.shortBreak:
-        return 'Short Break';
+        return LocaleKeys.short_break.tr();
       case SessionType.longBreak:
-        return 'Long Break';
+        return LocaleKeys.long_break.tr();
     }
   }
 
@@ -439,9 +443,13 @@ class HistoryScreen extends StatelessWidget {
     final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
     
     if (dateOnly == today) {
-      return 'Today ${_formatTime(dateTime)}';
+      return LocaleKeys.today_time.tr(namedArgs: {'time': _formatTime(dateTime)});
     } else {
-      return '${dateTime.day}/${dateTime.month} ${_formatTime(dateTime)}';
+      return LocaleKeys.date_time.tr(namedArgs: {
+        'day': dateTime.day.toString(),
+        'month': dateTime.month.toString(),
+        'time': _formatTime(dateTime),
+      });
     }
   }
 
@@ -480,7 +488,10 @@ Widget _buildTaskRow(BuildContext context, TaskModel task) {
           const SizedBox(width: 8),
         ],
         Text(
-          'Pomodoros ${task.completedPomodoros}/${task.estimatedPomodoros}',
+          LocaleKeys.pomodoros_count.tr(namedArgs: {
+            'completed': task.completedPomodoros.toString(),
+            'estimated': task.estimatedPomodoros.toString(),
+          }),
           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ],
@@ -515,12 +526,12 @@ class TaskTimelineScreen extends StatelessWidget {
           }
           if (snapshot.hasError) {
             return Center(
-              child: Text('Failed to load timeline: ${snapshot.error}'),
+              child: Text(LocaleKeys.failed_to_load_timeline.tr()),
             );
           }
           final sessions = snapshot.data ?? [];
           if (sessions.isEmpty) {
-            return const Center(child: Text('No sessions for this task'));
+            return Center(child: Text(LocaleKeys.no_sessions_for_task.tr()));
           }
 
           // Sort ascending by time to form a timeline
@@ -590,11 +601,11 @@ class _TimelineSessionItem extends StatelessWidget {
               () {
                 switch (session.sessionType) {
                   case SessionType.work:
-                    return 'Work Session';
+                    return LocaleKeys.work_session.tr();
                   case SessionType.shortBreak:
-                    return 'Short Break';
+                    return LocaleKeys.short_break.tr();
                   case SessionType.longBreak:
-                    return 'Long Break';
+                    return LocaleKeys.long_break.tr();
                 }
               }(),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: session.isCompleted ? Colors.green : Colors.grey.shade800),
@@ -609,7 +620,7 @@ class _TimelineSessionItem extends StatelessWidget {
         ]),
         const SizedBox(height: 8),
         Row(children: [
-          Text('Duration: $durationText', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+          Text(LocaleKeys.duration_label.tr(namedArgs: {'duration': durationText}), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
           const Spacer(),
           Text(_HistoryFormat.formatDateTime(session.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
         ]),

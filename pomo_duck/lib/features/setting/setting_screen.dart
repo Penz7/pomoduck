@@ -1,7 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomo_duck/common/extensions/context_extension.dart';
+import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/common/global_bloc/language/language_cubit.dart';
+import 'package:pomo_duck/generated/locale_keys.g.dart';
 
 import 'setting_cubit.dart';
 
@@ -20,7 +23,7 @@ class _SettingScreenState extends State<SettingScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Text('settings.title'.tr()),
+          title: Text('settings_title'.tr()),
         ),
         body: BlocBuilder<SettingCubit, SettingState>(
           builder: (context, state) {
@@ -45,13 +48,13 @@ class _SettingScreenState extends State<SettingScreen> {
               children: [
                 // Language
                 ListTile(
-                  title: Text('settings.language'.tr()),
-                  subtitle: Text(prefs.language == 'en' ? 'English' : 'Tiếng Việt'),
+                  title: Text('settings_language'.tr()),
+                  subtitle: Text(prefs.language == 'en' ? LocaleKeys.english.tr() : LocaleKeys.vietnamese.tr()),
                   trailing: DropdownButton<String>(
                     value: prefs.language,
-                    items: const [
-                      DropdownMenuItem(value: 'vi', child: Text('Tiếng Việt')),
-                      DropdownMenuItem(value: 'en', child: Text('English')),
+                    items: [
+                      DropdownMenuItem(value: 'vi', child: Text(LocaleKeys.vietnamese.tr())),
+                      DropdownMenuItem(value: 'en', child: Text(LocaleKeys.english.tr())),
                     ],
                     onChanged: (v) async {
                       if (v == null) return;
@@ -63,7 +66,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Theme (dark / light)
                 SwitchListTile(
-                  title: Text('settings.dark_mode'.tr()),
+                  title: Text('settings_dark_mode'.tr()),
                   value: prefs.appTheme == 'dark',
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setAppTheme(v ? 'dark' : 'light');
@@ -73,14 +76,14 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Date format
                 ListTile(
-                  title: Text('settings.date_format'.tr()),
+                  title: Text('settings_date_format'.tr()),
                   subtitle: Text(prefs.dateFormat),
                   trailing: DropdownButton<String>(
                     value: prefs.dateFormat,
-                    items: const [
-                      DropdownMenuItem(value: 'dd/MM/yyyy', child: Text('dd/MM/yyyy')),
-                      DropdownMenuItem(value: 'MM/dd/yyyy', child: Text('MM/dd/yyyy')),
-                      DropdownMenuItem(value: 'yyyy-MM-dd', child: Text('yyyy-MM-dd')),
+                    items: [
+                      DropdownMenuItem(value: 'dd/MM/yyyy', child: Text('date_format_dd_mm_yyyy'.tr())),
+                      DropdownMenuItem(value: 'MM/dd/yyyy', child: Text('date_format_mm_dd_yyyy'.tr())),
+                      DropdownMenuItem(value: 'yyyy-MM-dd', child: Text('date_format_yyyy_mm_dd'.tr())),
                     ],
                     onChanged: (v) async {
                       if (v == null) return;
@@ -91,13 +94,13 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Time format
                 ListTile(
-                  title: Text('settings.time_format'.tr()),
+                  title: Text('settings_time_format'.tr()),
                   subtitle: Text(prefs.timeFormat),
                   trailing: DropdownButton<String>(
                     value: prefs.timeFormat,
-                    items: const [
-                      DropdownMenuItem(value: '24h', child: Text('24h')),
-                      DropdownMenuItem(value: '12h', child: Text('12h')),
+                    items: [
+                      DropdownMenuItem(value: '24h', child: Text('time_format_24h'.tr())),
+                      DropdownMenuItem(value: '12h', child: Text('time_format_12h'.tr())),
                     ],
                     onChanged: (v) async {
                       if (v == null) return;
@@ -109,7 +112,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Notifications
                 SwitchListTile(
-                  title: Text('settings.notifications'.tr()),
+                  title: Text('settings_notifications'.tr()),
                   value: prefs.showNotifications,
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setNotifications(v);
@@ -118,7 +121,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Notification sound picker
                 ListTile(
-                  title: Text('settings.notification_sound'.tr()),
+                  title: Text('settings_notification_sound'.tr()),
                   subtitle: Text(sound.capitalizeFirstLetter()),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
@@ -131,7 +134,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             children: [
                               for (final s in items)
                                 RadioListTile<String>(
-                                  title: Text(s.capitalizeFirstLetter()),
+                                  title: Text('notification_sound_$s'.tr()),
                                   value: s,
                                   groupValue: sound,
                                   onChanged: (val) => Navigator.of(context).pop(val),
@@ -150,7 +153,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Haptic
                 SwitchListTile(
-                  title: Text('settings.haptic'.tr()),
+                  title: Text('settings_haptic'.tr()),
                   value: prefs.enableHapticFeedback,
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setHaptic(v);
@@ -159,7 +162,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Show task progress
                 SwitchListTile(
-                  title: Text('settings.show_task_progress'.tr()),
+                  title: Text('settings_show_task_progress'.tr()),
                   value: prefs.showTaskProgress,
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setShowTaskProgress(v);
@@ -168,7 +171,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Show daily stats
                 SwitchListTile(
-                  title: Text('settings.show_daily_stats'.tr()),
+                  title: Text('settings_show_daily_stats'.tr()),
                   value: prefs.showDailyStats,
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setShowDailyStats(v);
@@ -177,7 +180,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Show pomodoro counter
                 SwitchListTile(
-                  title: Text('settings.show_pomodoro_counter'.tr()),
+                  title: Text('settings_show_pomodoro_counter'.tr()),
                   value: prefs.showPomodoroCounter,
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setShowPomodoroCounter(v);
@@ -186,7 +189,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Show session progress
                 SwitchListTile(
-                  title: Text('settings.show_session_progress'.tr()),
+                  title: Text('settings_show_session_progress'.tr()),
                   value: prefs.showSessionProgress,
                   onChanged: (v) async {
                     await context.read<SettingCubit>().setShowSessionProgress(v);
@@ -196,7 +199,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                 // Default category
                 ListTile(
-                  title: Text('settings.default_category'.tr()),
+                  title: Text('settings_default_category'.tr()),
                   subtitle: Text(
                     (prefs.defaultTaskCategory.isEmpty ? 'focus' : prefs.defaultTaskCategory)
                         .capitalizeFirstLetter(),
@@ -226,6 +229,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     }
                   },
                 ),
+                context.bottomPadding.height,
               ],
             );
           },

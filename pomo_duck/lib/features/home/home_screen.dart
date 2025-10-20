@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-// import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/common/extensions/router_extension.dart';
 import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
+import 'package:pomo_duck/generated/locale_keys.g.dart';
 
 // import '../../common/global_bloc/language/language_cubit.dart';
 // import '../../generated/locale_keys.g.dart';
@@ -81,10 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'Pomo Duck',
+                      Text(
+                        LocaleKeys.app_title.tr(),
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -158,9 +159,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: 400,
                                 height: 50,
                               ),
-                              const Text(
-                                'Start',
-                                style: TextStyle(
+                              Text(
+                                LocaleKeys.start.tr(),
+                                style: const TextStyle(
                                   fontSize: 16,
                                 ),
                               ),
@@ -210,9 +211,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                     fit: BoxFit.contain,
                   ),
                   10.width,
-                  const Text(
-                    'Pomodoro Settings',
-                    style: TextStyle(
+                  Text(
+                    LocaleKeys.pomodoro_settings.tr(),
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -228,9 +229,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Tag',
-                        style: TextStyle(
+                      Text(
+                        LocaleKeys.tag.tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -257,17 +258,17 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                         onChanged: (v) => context
                             .read<ConfigPomodoroCubit>()
                             .setStandardMode(v),
-                        title: const Text(
-                          'Standard Pomodoro Mode',
-                          style: TextStyle(
+                        title: Text(
+                          LocaleKeys.standard_pomodoro_mode.tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         subtitle: Text(
                           s.isStandardMode
-                              ? 'Following Francesco Cirillo\'s original technique (25min work, 5min break, 15min long break after 4 pomodoros)'
-                              : 'Custom mode - Adjustable durations and cycle count',
+                              ? LocaleKeys.standard_mode_description.tr()
+                              : LocaleKeys.custom_mode_description.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -278,9 +279,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                       16.height,
                       // Pomodoro Cycle Count (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
-                        const Text(
-                          'Pomodoro Cycle Count',
-                          style: TextStyle(
+                        Text(
+                          LocaleKeys.pomodoro_cycle_count.tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -312,7 +313,7 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           ],
                         ),
                         Text(
-                          'Task will be completed after ${s.pomodoroCycleCount} pomodoro work sessions',
+                          LocaleKeys.task_will_complete.tr(namedArgs: {'count': s.pomodoroCycleCount.toString()}),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -322,9 +323,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                       16.height,
                       // Durations (only show in Custom Mode)
                       if (!s.isStandardMode) ...[
-                        const Text(
-                          'Work Duration (minutes)',
-                          style: TextStyle(
+                        Text(
+                          LocaleKeys.work_duration.tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -342,9 +343,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        const Text(
-                          'Short Break Duration (minutes)',
-                          style: TextStyle(
+                        Text(
+                          LocaleKeys.short_break_duration.tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -362,9 +363,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        const Text(
-                          'Long Break Duration (minutes)',
-                          style: TextStyle(
+                        Text(
+                          LocaleKeys.long_break_duration.tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -382,9 +383,9 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
                           inactiveColor: Colors.grey,
                           secondaryActiveColor: Colors.black,
                         ),
-                        const Text(
-                          'Long Break Interval',
-                          style: TextStyle(
+                        Text(
+                          LocaleKeys.long_break_interval.tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -417,7 +418,6 @@ Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
 
 Future<void> _showStartTaskSheet(BuildContext context) async {
   final cfg = context.read<ConfigPomodoroCubit>().state;
-  final settings = cfg.settings;
   String selectedTag = cfg.selectedTag;
 
   final titleCtrl = TextEditingController();
@@ -454,10 +454,9 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                       fit: BoxFit.contain,
                     ),
                     10.width,
-                    const Text(
-                      'Start Session',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    Text(
+                      LocaleKeys.start_session.tr(),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -466,18 +465,18 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                   controller: titleCtrl,
                   autofocus: true,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Task title',
-                    border: OutlineInputBorder(),
-                    labelStyle: TextStyle(fontWeight: FontWeight.w500, color: Colors.black,),
+                  decoration: InputDecoration(
+                    labelText: LocaleKeys.task_title.tr(),
+                    border: const OutlineInputBorder(),
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black,),
                     focusColor: Colors.black,
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
                     ),
                   ),
                   validator: (v) {
                     final value = (v ?? '').trim();
-                    if (value.isEmpty) return 'Please enter task title';
+                    if (value.isEmpty) return LocaleKeys.task_title.tr();
                     if (value.length > 100) {
                       return 'Title is too long (max 100)';
                     }
@@ -490,9 +489,9 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
+                        child: Text(
+                          LocaleKeys.cancel.tr(),
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.black,
                           ),
@@ -523,9 +522,9 @@ Future<void> _showStartTaskSheet(BuildContext context) async {
                             ctx.goWithPath('/home/pomodoro');
                           }
                         },
-                        child: const Text(
-                          'Start',
-                          style: TextStyle(
+                        child: Text(
+                          LocaleKeys.start.tr(),
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.black,
                           ),
@@ -552,24 +551,24 @@ class _AddTagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActionChip(
-      label: const Text('+ Add tag'),
+      label: Text(LocaleKeys.add_tag.tr()),
       onPressed: () async {
         final controller = TextEditingController();
         await showDialog(
           context: context,
           builder: (dCtx) {
             return AlertDialog(
-              title: const Text('Add new tag'),
+              title: Text(LocaleKeys.add_new_tag.tr()),
               content: TextField(
                 controller: controller,
-                decoration: const InputDecoration(
-                  hintText: 'Enter tag name',
+                decoration: InputDecoration(
+                  hintText: LocaleKeys.enter_tag_name.tr(),
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dCtx).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(LocaleKeys.cancel.tr()),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -580,7 +579,7 @@ class _AddTagChip extends StatelessWidget {
                     }
                     Navigator.of(dCtx).pop();
                   },
-                  child: const Text('Add'),
+                  child: Text(LocaleKeys.add.tr()),
                 ),
               ],
             );
