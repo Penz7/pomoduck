@@ -3,6 +3,7 @@ import '../../data/models/task_model.dart';
 import '../../data/models/pomodoro_settings.dart';
 import '../../data/models/current_timer_state.dart';
 import '../../data/models/pomodoro_cycle_model.dart';
+import '../../data/models/statistics_model.dart';
 import '../../data/database/database_helper.dart';
 import '../local_storage/hive_data_manager.dart';
 
@@ -231,39 +232,6 @@ class HybridDataCoordinator {
     await _updateRecentTasksCache();
   }
 
-  // ==================== ANALYTICS OPERATIONS ====================
-
-  /// Get today's statistics với cache strategy
-  Future<Map<String, dynamic>> getTodayStatistics() async {
-    // 1. Check cache first (ultra-fast)
-    final cachedStats = HiveDataManager.getTodayStats();
-    if (cachedStats != null) {
-      final cacheTime = DateTime.parse(cachedStats['cache_time'] as String);
-      final now = DateTime.now();
-      
-      // Use cache if less than 5 minutes old
-      if (now.difference(cacheTime).inMinutes < 5) {
-        return Map<String, dynamic>.from(cachedStats);
-      }
-    }
-    
-    // 2. Query from SQLite if cache is stale
-    final stats = await DatabaseHelper.instance.getTodayStatistics();
-    final statsWithTime = <String, dynamic>{
-      ...stats,
-      'cache_time': DateTime.now().toIso8601String(),
-    };
-    
-    // 3. Update cache in Hive
-    await HiveDataManager.saveTodayStats(statsWithTime);
-    
-    return statsWithTime;
-  }
-
-  /// Get overall statistics
-  Future<Map<String, dynamic>> getOverallStatistics() async {
-    return await DatabaseHelper.instance.getStatistics();
-  }
 
   /// Get recent tasks với cache strategy
   Future<List<TaskModel>> getRecentTasks() async {
@@ -411,6 +379,141 @@ class HybridDataCoordinator {
   /// Clear all data (for logout/reset)
   Future<void> clearAllData() async {
     await HiveDataManager.clearAllData();
+  }
+
+  // ==================== ADVANCED STATISTICS OPERATIONS ====================
+
+  /// Lấy thống kê chi tiết theo khoảng thời gian
+  Future<StatisticsModel> getDetailedStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+    String periodType = 'custom',
+  }) async {
+    return await DatabaseHelper.instance.getDetailedStatistics(
+      startDate: startDate,
+      endDate: endDate,
+      periodType: periodType,
+    );
+  }
+
+  /// Lấy thống kê theo ngày
+  Future<List<DailyStatisticsModel>> getDailyStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return await DatabaseHelper.instance.getDailyStatistics(
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  /// Lấy thống kê theo tuần
+  Future<List<WeeklyStatisticsModel>> getWeeklyStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return await DatabaseHelper.instance.getWeeklyStatistics(
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  /// Lấy thống kê theo tháng
+  Future<List<MonthlyStatisticsModel>> getMonthlyStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return await DatabaseHelper.instance.getMonthlyStatistics(
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  /// Lấy patterns của sessions
+  Future<SessionPatternsModel> getSessionPatterns({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return await DatabaseHelper.instance.getSessionPatterns(
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  /// Lấy thống kê tổng hợp với filter theo thời gian
+  Future<Map<String, dynamic>> getComprehensiveStatistics({
+    DateTime? startDate,
+    DateTime? endDate,
+    String periodType = 'week', // 'day', 'week', 'month', 'custom'
+  }) async {
+    // Xác định khoảng thời gian
+    DateTime actualStartDate;
+    DateTime actualEndDate;
+    
+    final now = DateTime.now();
+    switch (periodType) {
+      case 'day':
+        actualStartDate = DateTime(now.year, now.month, now.day);
+        actualEndDate = actualStartDate.add(const Duration(days: 1));
+        break;
+      case 'week':
+        final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+        actualStartDate = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+        actualEndDate = actualStartDate.add(const Duration(days: 7));
+        break;
+      case 'month':
+        actualStartDate = DateTime(now.year, now.month, 1);
+        actualEndDate = DateTime(now.year, now.month + 1, 1);
+        break;
+      case 'custom':
+        actualStartDate = startDate ?? DateTime(now.year, now.month, 1);
+        actualEndDate = endDate ?? now;
+        break;
+      default:
+        actualStartDate = DateTime(now.year, now.month, 1);
+        actualEndDate = now;
+    }
+
+    // Lấy tất cả dữ liệu thống kê
+    final detailedStats = await getDetailedStatistics(
+      startDate: actualStartDate,
+      endDate: actualEndDate,
+      periodType: periodType,
+    );
+
+    final dailyStats = await getDailyStatistics(
+      startDate: actualStartDate,
+      endDate: actualEndDate,
+    );
+
+    final weeklyStats = await getWeeklyStatistics(
+      startDate: actualStartDate,
+      endDate: actualEndDate,
+    );
+
+    final monthlyStats = await getMonthlyStatistics(
+      startDate: actualStartDate,
+      endDate: actualEndDate,
+    );
+
+    final sessionPatterns = await getSessionPatterns(
+      startDate: actualStartDate,
+      endDate: actualEndDate,
+    );
+
+    return {
+      'overview': detailedStats.toMap(),
+      'daily_stats': dailyStats.map((e) => e.toMap()).toList(),
+      'weekly_stats': weeklyStats.map((e) => e.toMap()).toList(),
+      'monthly_stats': monthlyStats.map((e) => e.toMap()).toList(),
+      'session_patterns': sessionPatterns.toMap(),
+      'period_info': {
+        'start_date': actualStartDate.toIso8601String(),
+        'end_date': actualEndDate.toIso8601String(),
+        'period_type': periodType,
+        'total_days': actualEndDate.difference(actualStartDate).inDays + 1,
+      },
+    };
   }
 
   // ==================== PERFORMANCE MONITORING ====================

@@ -9,17 +9,27 @@ final class StatisticLoading extends StatisticState {}
 
 final class StatisticLoaded extends StatisticState {
   StatisticLoaded({
-    required this.todayStats,
-    required this.overallStats,
-    required this.analytics,
-    required this.realtime,
-    required this.predictions,
+    required this.overview,
+    required this.dailyStats,
+    required this.weeklyStats,
+    required this.monthlyStats,
+    required this.sessionPatterns,
+    required this.periodInfo,
   });
-  final Map<String, dynamic> todayStats;
-  final Map<String, dynamic> overallStats;
-  final Map<String, dynamic> analytics; // includes basic, patterns, performance, focus
-  final Map<String, dynamic> realtime;   // today_sessions, today_work_time, active_session, current_cycle
-  final Map<String, dynamic> predictions;
+  
+  // Thống kê tổng quan
+  final Map<String, dynamic> overview;
+  
+  // Thống kê chi tiết theo thời gian
+  final List<Map<String, dynamic>> dailyStats;
+  final List<Map<String, dynamic>> weeklyStats;
+  final List<Map<String, dynamic>> monthlyStats;
+  
+  // Patterns và insights
+  final Map<String, dynamic> sessionPatterns;
+  
+  // Thông tin khoảng thời gian
+  final Map<String, dynamic> periodInfo;
 }
 
 final class StatisticError extends StatisticState {

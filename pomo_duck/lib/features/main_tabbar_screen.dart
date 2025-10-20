@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pomo_duck/common/extensions/context_extension.dart';
 
-import '../common/theme/colors.dart';
 import '../common/theme/config_helper.dart';
 
 class MainTabBarScreen extends StatefulWidget {

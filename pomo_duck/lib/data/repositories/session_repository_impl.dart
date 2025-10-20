@@ -77,15 +77,6 @@ class SessionRepositoryImpl implements SessionRepository {
     return await updateSession(updatedSession);
   }
   
-  @override
-  Future<Map<String, dynamic>> getStatistics() async {
-    return await _databaseHelper.getStatistics();
-  }
-  
-  @override
-  Future<Map<String, dynamic>> getTodayStatistics() async {
-    return await _databaseHelper.getTodayStatistics();
-  }
   
   /// Helper method để lấy session theo ID
   Future<SessionModel?> _getSessionById(int id) async {

@@ -227,25 +227,6 @@ class HiveDataManager {
     await saveCachedData('recent_tasks', {'tasks': tasks});
   }
 
-  /// Get today's statistics cache
-  static Map? getTodayStats() {
-    return getCachedData('today_stats');
-  }
-
-  /// Save today's statistics cache
-  static Future<void> saveTodayStats(Map stats) async {
-    await saveCachedData('today_stats', stats);
-  }
-
-  /// Get daily analytics cache
-  static Map? getDailyAnalytics() {
-    return getCachedData('daily_analytics');
-  }
-
-  /// Save daily analytics cache
-  static Future<void> saveDailyAnalytics(Map analytics) async {
-    await saveCachedData('daily_analytics', analytics);
-  }
 
   // ==================== UTILITY METHODS ====================
 

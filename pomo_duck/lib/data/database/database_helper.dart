@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import '../models/task_model.dart';
 import '../models/session_model.dart';
 import '../models/pomodoro_cycle_model.dart';
+import '../models/statistics_model.dart';
 
 class DatabaseHelper {
   // Singleton instance
@@ -312,70 +313,6 @@ class DatabaseHelper {
     return maps.map((map) => SessionModel.fromMap(map)).toList();
   }
   
-  // ==================== ANALYTICS OPERATIONS ====================
-  
-  /// Lấy thống kê tổng quan
-  Future<Map<String, dynamic>> getStatistics() async {
-    final db = await database;
-    
-    // Tổng số tasks
-    final totalTasksResult = await db.rawQuery('SELECT COUNT(*) as count FROM $_tasksTable');
-    final totalTasks = totalTasksResult.first['count'] as int;
-    
-    // Tasks đã hoàn thành
-    final completedTasksResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM $_tasksTable WHERE is_completed = 1'
-    );
-    final completedTasks = completedTasksResult.first['count'] as int;
-    
-    // Tổng số sessions hoàn thành
-    final completedSessionsResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM $_sessionsTable WHERE is_completed = 1'
-    );
-    final completedSessions = completedSessionsResult.first['count'] as int;
-    
-    // Tổng thời gian tập trung (work sessions)
-    final workTimeResult = await db.rawQuery(
-      'SELECT SUM(actual_duration) as total FROM $_sessionsTable WHERE session_type = ? AND is_completed = 1',
-      ['work']
-    );
-    final totalWorkTime = workTimeResult.first['total'] as int? ?? 0;
-    
-    return {
-      'totalTasks': totalTasks,
-      'completedTasks': completedTasks,
-      'completedSessions': completedSessions,
-      'totalWorkTime': totalWorkTime,
-      'completionRate': totalTasks > 0 ? (completedTasks / totalTasks * 100).round() : 0,
-    };
-  }
-  
-  /// Lấy thống kê theo ngày
-  Future<Map<String, dynamic>> getTodayStatistics() async {
-    final db = await database;
-    final today = DateTime.now();
-    final startOfDay = DateTime(today.year, today.month, today.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
-    
-    // Sessions hoàn thành hôm nay
-    final todaySessionsResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM $_sessionsTable WHERE is_completed = 1 AND end_time >= ? AND end_time < ?',
-      [startOfDay.toIso8601String(), endOfDay.toIso8601String()]
-    );
-    final todaySessions = todaySessionsResult.first['count'] as int;
-    
-    // Thời gian tập trung hôm nay
-    final todayWorkTimeResult = await db.rawQuery(
-      'SELECT SUM(actual_duration) as total FROM $_sessionsTable WHERE session_type = ? AND is_completed = 1 AND end_time >= ? AND end_time < ?',
-      ['work', startOfDay.toIso8601String(), endOfDay.toIso8601String()]
-    );
-    final todayWorkTime = todayWorkTimeResult.first['total'] as int? ?? 0;
-    
-    return {
-      'todaySessions': todaySessions,
-      'todayWorkTime': todayWorkTime,
-    };
-  }
 
   // ==================== POMODORO CYCLE OPERATIONS ====================
 
@@ -513,6 +450,455 @@ class DatabaseHelper {
       'totalPomodoros': totalPomodoros,
       'todayCycles': todayCycles,
     };
+  }
+
+  // ==================== ADVANCED STATISTICS OPERATIONS ====================
+
+  /// Lấy thống kê chi tiết theo khoảng thời gian
+  Future<StatisticsModel> getDetailedStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+    String periodType = 'custom',
+  }) async {
+    final db = await database;
+    
+    // Tổng số tasks trong khoảng thời gian
+    final totalTasksResult = await db.rawQuery('''
+      SELECT COUNT(*) as count FROM $_tasksTable 
+      WHERE created_at >= ? AND created_at <= ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    final totalTasks = totalTasksResult.first['count'] as int;
+    
+    // Tasks đã hoàn thành trong khoảng thời gian
+    final completedTasksResult = await db.rawQuery('''
+      SELECT COUNT(*) as count FROM $_tasksTable 
+      WHERE is_completed = 1 AND updated_at >= ? AND updated_at <= ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    final completedTasks = completedTasksResult.first['count'] as int;
+    
+    // Tổng số sessions trong khoảng thời gian
+    final totalSessionsResult = await db.rawQuery('''
+      SELECT COUNT(*) as count FROM $_sessionsTable 
+      WHERE created_at >= ? AND created_at <= ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    final totalSessions = totalSessionsResult.first['count'] as int;
+    
+    // Sessions đã hoàn thành trong khoảng thời gian
+    final completedSessionsResult = await db.rawQuery('''
+      SELECT COUNT(*) as count FROM $_sessionsTable 
+      WHERE is_completed = 1 AND end_time >= ? AND end_time <= ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    final completedSessions = completedSessionsResult.first['count'] as int;
+    
+    // Tổng thời gian làm việc (work sessions)
+    final workTimeResult = await db.rawQuery('''
+      SELECT SUM(actual_duration) as total FROM $_sessionsTable 
+      WHERE session_type = 'work' AND is_completed = 1 
+      AND end_time >= ? AND end_time <= ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    final totalWorkTime = workTimeResult.first['total'] as int? ?? 0;
+    
+    // Tổng thời gian nghỉ (break sessions)
+    final breakTimeResult = await db.rawQuery('''
+      SELECT SUM(actual_duration) as total FROM $_sessionsTable 
+      WHERE session_type IN ('short_break', 'long_break') AND is_completed = 1 
+      AND end_time >= ? AND end_time <= ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    final totalBreakTime = breakTimeResult.first['total'] as int? ?? 0;
+    
+    // Tính tỷ lệ hoàn thành
+    final completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    
+    // Tính điểm hiệu suất (dựa trên tần suất và thời gian)
+    final days = endDate.difference(startDate).inDays + 1;
+    final averageSessionsPerDay = completedSessions / days;
+    final averageWorkTimePerDay = (totalWorkTime / 60) / days; // phút
+    final productivityScore = ((averageSessionsPerDay / 8) * 50 + (averageWorkTimePerDay / 240) * 50).clamp(0, 100);
+    
+    return StatisticsModel(
+      totalTasks: totalTasks,
+      completedTasks: completedTasks,
+      totalSessions: totalSessions,
+      completedSessions: completedSessions,
+      totalWorkTime: totalWorkTime,
+      totalBreakTime: totalBreakTime,
+      completionRate: completionRate.toDouble(),
+      productivityScore: productivityScore.toDouble(),
+      periodStart: startDate,
+      periodEnd: endDate,
+      periodType: periodType,
+    );
+  }
+
+  /// Lấy thống kê theo ngày trong khoảng thời gian
+  Future<List<DailyStatisticsModel>> getDailyStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    final List<DailyStatisticsModel> dailyStats = [];
+    
+    // Lấy dữ liệu sessions theo ngày
+    final sessionsResult = await db.rawQuery('''
+      SELECT 
+        DATE(end_time) as date,
+        COUNT(*) as sessions_completed,
+        SUM(CASE WHEN session_type = 'work' THEN actual_duration ELSE 0 END) as work_time,
+        SUM(CASE WHEN session_type IN ('short_break', 'long_break') THEN actual_duration ELSE 0 END) as break_time
+      FROM $_sessionsTable 
+      WHERE is_completed = 1 AND end_time >= ? AND end_time <= ?
+      GROUP BY DATE(end_time)
+      ORDER BY date
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Lấy dữ liệu tasks theo ngày
+    final tasksResult = await db.rawQuery('''
+      SELECT 
+        DATE(updated_at) as date,
+        COUNT(*) as tasks_completed
+      FROM $_tasksTable 
+      WHERE is_completed = 1 AND updated_at >= ? AND updated_at <= ?
+      GROUP BY DATE(updated_at)
+      ORDER BY date
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Tạo map cho tasks
+    final tasksMap = <String, int>{};
+    for (final task in tasksResult) {
+      tasksMap[task['date'] as String] = task['tasks_completed'] as int;
+    }
+    
+    // Tạo daily statistics
+    for (final session in sessionsResult) {
+      final date = DateTime.parse(session['date'] as String);
+      final sessionsCompleted = session['sessions_completed'] as int;
+      final workTime = session['work_time'] as int? ?? 0;
+      final breakTime = session['break_time'] as int? ?? 0;
+      final tasksCompleted = tasksMap[session['date'] as String] ?? 0;
+      
+      // Tính điểm hiệu suất cho ngày
+      final productivityScore = _calculateDailyProductivityScore(
+        sessionsCompleted, workTime, tasksCompleted,
+      );
+      
+      dailyStats.add(DailyStatisticsModel(
+        date: date,
+        sessionsCompleted: sessionsCompleted,
+        workTime: workTime,
+        breakTime: breakTime,
+        tasksCompleted: tasksCompleted,
+        productivityScore: productivityScore,
+      ));
+    }
+    
+    return dailyStats;
+  }
+
+  /// Lấy thống kê theo tuần trong khoảng thời gian
+  Future<List<WeeklyStatisticsModel>> getWeeklyStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    final List<WeeklyStatisticsModel> weeklyStats = [];
+    
+    // Lấy dữ liệu sessions theo tuần
+    final sessionsResult = await db.rawQuery('''
+      SELECT 
+        strftime('%Y-%W', end_time) as week,
+        COUNT(*) as sessions_completed,
+        SUM(CASE WHEN session_type = 'work' THEN actual_duration ELSE 0 END) as work_time,
+        SUM(CASE WHEN session_type IN ('short_break', 'long_break') THEN actual_duration ELSE 0 END) as break_time,
+        COUNT(DISTINCT DATE(end_time)) as active_days
+      FROM $_sessionsTable 
+      WHERE is_completed = 1 AND end_time >= ? AND end_time <= ?
+      GROUP BY strftime('%Y-%W', end_time)
+      ORDER BY week
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Lấy dữ liệu tasks theo tuần
+    final tasksResult = await db.rawQuery('''
+      SELECT 
+        strftime('%Y-%W', updated_at) as week,
+        COUNT(*) as tasks_completed
+      FROM $_tasksTable 
+      WHERE is_completed = 1 AND updated_at >= ? AND updated_at <= ?
+      GROUP BY strftime('%Y-%W', updated_at)
+      ORDER BY week
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Tạo map cho tasks
+    final tasksMap = <String, int>{};
+    for (final task in tasksResult) {
+      tasksMap[task['week'] as String] = task['tasks_completed'] as int;
+    }
+    
+    // Tạo weekly statistics
+    for (final session in sessionsResult) {
+      final weekStr = session['week'] as String;
+      final year = int.parse(weekStr.split('-')[0]);
+      final week = int.parse(weekStr.split('-')[1]);
+      
+      // Tính ngày đầu và cuối tuần
+      final weekStart = _getWeekStart(year, week);
+      final weekEnd = weekStart.add(const Duration(days: 6));
+      
+      final sessionsCompleted = session['sessions_completed'] as int;
+      final workTime = session['work_time'] as int? ?? 0;
+      final breakTime = session['break_time'] as int? ?? 0;
+      final tasksCompleted = tasksMap[weekStr] ?? 0;
+      final activeDays = session['active_days'] as int;
+      
+      // Tính điểm hiệu suất trung bình cho tuần
+      final averageProductivityScore = _calculateWeeklyProductivityScore(
+        sessionsCompleted, workTime, tasksCompleted, activeDays,
+      );
+      
+      weeklyStats.add(WeeklyStatisticsModel(
+        weekStart: weekStart,
+        weekEnd: weekEnd,
+        sessionsCompleted: sessionsCompleted,
+        workTime: workTime,
+        breakTime: breakTime,
+        tasksCompleted: tasksCompleted,
+        averageProductivityScore: averageProductivityScore,
+        activeDays: activeDays,
+      ));
+    }
+    
+    return weeklyStats;
+  }
+
+  /// Lấy thống kê theo tháng trong khoảng thời gian
+  Future<List<MonthlyStatisticsModel>> getMonthlyStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    final List<MonthlyStatisticsModel> monthlyStats = [];
+    
+    // Lấy dữ liệu sessions theo tháng
+    final sessionsResult = await db.rawQuery('''
+      SELECT 
+        strftime('%Y-%m', end_time) as month,
+        COUNT(*) as sessions_completed,
+        SUM(CASE WHEN session_type = 'work' THEN actual_duration ELSE 0 END) as work_time,
+        SUM(CASE WHEN session_type IN ('short_break', 'long_break') THEN actual_duration ELSE 0 END) as break_time,
+        COUNT(DISTINCT DATE(end_time)) as active_days,
+        COUNT(DISTINCT strftime('%Y-%W', end_time)) as active_weeks
+      FROM $_sessionsTable 
+      WHERE is_completed = 1 AND end_time >= ? AND end_time <= ?
+      GROUP BY strftime('%Y-%m', end_time)
+      ORDER BY month
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Lấy dữ liệu tasks theo tháng
+    final tasksResult = await db.rawQuery('''
+      SELECT 
+        strftime('%Y-%m', updated_at) as month,
+        COUNT(*) as tasks_completed
+      FROM $_tasksTable 
+      WHERE is_completed = 1 AND updated_at >= ? AND updated_at <= ?
+      GROUP BY strftime('%Y-%m', updated_at)
+      ORDER BY month
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Tạo map cho tasks
+    final tasksMap = <String, int>{};
+    for (final task in tasksResult) {
+      tasksMap[task['month'] as String] = task['tasks_completed'] as int;
+    }
+    
+    // Tạo monthly statistics
+    for (final session in sessionsResult) {
+      final monthStr = session['month'] as String;
+      final year = int.parse(monthStr.split('-')[0]);
+      final month = int.parse(monthStr.split('-')[1]);
+      
+      // Tính ngày đầu và cuối tháng
+      final monthStart = DateTime(year, month, 1);
+      final monthEnd = DateTime(year, month + 1, 0);
+      
+      final sessionsCompleted = session['sessions_completed'] as int;
+      final workTime = session['work_time'] as int? ?? 0;
+      final breakTime = session['break_time'] as int? ?? 0;
+      final tasksCompleted = tasksMap[monthStr] ?? 0;
+      final activeDays = session['active_days'] as int;
+      final activeWeeks = session['active_weeks'] as int;
+      
+      // Tính điểm hiệu suất trung bình cho tháng
+      final averageProductivityScore = _calculateMonthlyProductivityScore(
+        sessionsCompleted, workTime, tasksCompleted, activeDays, activeWeeks,
+      );
+      
+      monthlyStats.add(MonthlyStatisticsModel(
+        monthStart: monthStart,
+        monthEnd: monthEnd,
+        sessionsCompleted: sessionsCompleted,
+        workTime: workTime,
+        breakTime: breakTime,
+        tasksCompleted: tasksCompleted,
+        averageProductivityScore: averageProductivityScore,
+        activeDays: activeDays,
+        activeWeeks: activeWeeks,
+      ));
+    }
+    
+    return monthlyStats;
+  }
+
+  /// Lấy patterns của sessions
+  Future<SessionPatternsModel> getSessionPatterns({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    
+    // Thống kê thời gian session
+    final sessionDurationResult = await db.rawQuery('''
+      SELECT 
+        AVG(actual_duration) as avg_duration,
+        actual_duration as duration,
+        COUNT(*) as count
+      FROM $_sessionsTable 
+      WHERE session_type = 'work' AND is_completed = 1 
+      AND end_time >= ? AND end_time <= ?
+      GROUP BY actual_duration
+      ORDER BY count DESC
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Thống kê thời gian nghỉ
+    final breakDurationResult = await db.rawQuery('''
+      SELECT 
+        session_type,
+        AVG(actual_duration) as avg_duration
+      FROM $_sessionsTable 
+      WHERE session_type IN ('short_break', 'long_break') AND is_completed = 1 
+      AND end_time >= ? AND end_time <= ?
+      GROUP BY session_type
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Thống kê theo giờ trong ngày
+    final hourlyResult = await db.rawQuery('''
+      SELECT 
+        strftime('%H', end_time) as hour,
+        COUNT(*) as count
+      FROM $_sessionsTable 
+      WHERE is_completed = 1 AND end_time >= ? AND end_time <= ?
+      GROUP BY strftime('%H', end_time)
+      ORDER BY count DESC
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Thống kê theo ngày trong tuần
+    final dailyResult = await db.rawQuery('''
+      SELECT 
+        strftime('%w', end_time) as day_of_week,
+        COUNT(*) as count
+      FROM $_sessionsTable 
+      WHERE is_completed = 1 AND end_time >= ? AND end_time <= ?
+      GROUP BY strftime('%w', end_time)
+      ORDER BY count DESC
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+    
+    // Tính toán kết quả
+    final averageSessionDuration = sessionDurationResult.isNotEmpty 
+        ? (sessionDurationResult.first['avg_duration'] as num).toInt()
+        : 0;
+    
+    final mostCommonSessionDuration = sessionDurationResult.isNotEmpty
+        ? sessionDurationResult.first['duration'] as int
+        : 0;
+    
+    int averageShortBreakDuration = 0;
+    int averageLongBreakDuration = 0;
+    
+    for (final breakData in breakDurationResult) {
+      if (breakData['session_type'] == 'short_break') {
+        averageShortBreakDuration = (breakData['avg_duration'] as num).toInt();
+      } else if (breakData['session_type'] == 'long_break') {
+        averageLongBreakDuration = (breakData['avg_duration'] as num).toInt();
+      }
+    }
+    
+    // Tạo distribution maps
+    final sessionDurationDistribution = <String, int>{};
+    for (final session in sessionDurationResult) {
+      final duration = session['duration'] as int;
+      final count = session['count'] as int;
+      sessionDurationDistribution['${duration ~/ 60} phút'] = count;
+    }
+    
+    final breakDurationDistribution = <String, int>{};
+    for (final breakData in breakDurationResult) {
+      final sessionType = breakData['session_type'] as String;
+      final avgDuration = (breakData['avg_duration'] as num).toInt();
+      breakDurationDistribution[sessionType == 'short_break' ? 'Nghỉ ngắn' : 'Nghỉ dài'] = avgDuration;
+    }
+    
+    // Tìm giờ và ngày hiệu suất cao nhất
+    final mostProductiveHour = hourlyResult.isNotEmpty 
+        ? '${hourlyResult.first['hour']}:00'
+        : '09:00';
+    
+    final mostProductiveDay = dailyResult.isNotEmpty 
+        ? _getDayName(int.parse(dailyResult.first['day_of_week'] as String))
+        : 'Thứ 2';
+    
+    return SessionPatternsModel(
+      averageSessionDuration: averageSessionDuration,
+      mostCommonSessionDuration: mostCommonSessionDuration,
+      averageShortBreakDuration: averageShortBreakDuration,
+      averageLongBreakDuration: averageLongBreakDuration,
+      sessionDurationDistribution: sessionDurationDistribution,
+      breakDurationDistribution: breakDurationDistribution,
+      mostProductiveHour: mostProductiveHour,
+      mostProductiveDay: mostProductiveDay,
+    );
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /// Tính điểm hiệu suất cho ngày
+  double _calculateDailyProductivityScore(int sessions, int workTime, int tasks) {
+    final sessionScore = (sessions / 8) * 40; // 8 sessions = 40 điểm
+    final timeScore = (workTime / 14400) * 40; // 4 giờ = 40 điểm (14400 giây)
+    final taskScore = (tasks / 5) * 20; // 5 tasks = 20 điểm
+    
+    return (sessionScore + timeScore + taskScore).clamp(0, 100);
+  }
+
+  /// Tính điểm hiệu suất cho tuần
+  double _calculateWeeklyProductivityScore(int sessions, int workTime, int tasks, int activeDays) {
+    final sessionScore = (sessions / 40) * 30; // 40 sessions/tuần = 30 điểm
+    final timeScore = (workTime / 100800) * 30; // 28 giờ/tuần = 30 điểm
+    final taskScore = (tasks / 25) * 20; // 25 tasks/tuần = 20 điểm
+    final consistencyScore = (activeDays / 7) * 20; // 7 ngày/tuần = 20 điểm
+    
+    return (sessionScore + timeScore + taskScore + consistencyScore).clamp(0, 100);
+  }
+
+  /// Tính điểm hiệu suất cho tháng
+  double _calculateMonthlyProductivityScore(int sessions, int workTime, int tasks, int activeDays, int activeWeeks) {
+    final sessionScore = (sessions / 160) * 25; // 160 sessions/tháng = 25 điểm
+    final timeScore = (workTime / 403200) * 25; // 112 giờ/tháng = 25 điểm
+    final taskScore = (tasks / 100) * 20; // 100 tasks/tháng = 20 điểm
+    final consistencyScore = (activeDays / 30) * 15; // 30 ngày/tháng = 15 điểm
+    final weeklyConsistencyScore = (activeWeeks / 4) * 15; // 4 tuần/tháng = 15 điểm
+    
+    return (sessionScore + timeScore + taskScore + consistencyScore + weeklyConsistencyScore).clamp(0, 100);
+  }
+
+  /// Lấy ngày đầu tuần
+  DateTime _getWeekStart(int year, int week) {
+    final jan1 = DateTime(year, 1, 1);
+    final daysToAdd = (week - 1) * 7;
+    return jan1.add(Duration(days: daysToAdd));
+  }
+
+  /// Lấy tên ngày trong tuần
+  String _getDayName(int dayOfWeek) {
+    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    return days[dayOfWeek];
   }
 
   // ==================== CLEAR DATA OPERATIONS ====================

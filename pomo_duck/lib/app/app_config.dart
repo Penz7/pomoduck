@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 
 import '../core/local_storage/local_storage.dart';
 import '../data/database/database_helper.dart';
-import '../core/cache/smart_cache_manager.dart';
 import '../core/monitoring/performance_monitor.dart';
 import 'app_bloc_observer.dart';
 
@@ -28,8 +27,6 @@ Future<void> initConfig() async {
   // Khởi tạo SQLite database
   await DatabaseHelper.instance.database;
   
-  // Khởi tạo Smart Cache Manager
-  SmartCacheManager.instance.initialize();
   
   // Khởi tạo Performance Monitor
   PerformanceMonitor.instance.startMonitoring();

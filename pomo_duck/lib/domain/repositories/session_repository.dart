@@ -32,9 +32,4 @@ abstract class SessionRepository {
   /// Kết thúc session
   Future<int> endSession(int sessionId);
   
-  /// Lấy thống kê tổng quan
-  Future<Map<String, dynamic>> getStatistics();
-  
-  /// Lấy thống kê theo ngày
-  Future<Map<String, dynamic>> getTodayStatistics();
 }
