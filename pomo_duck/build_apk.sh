@@ -10,15 +10,13 @@ usage() {
 Usage: bash build_apk.sh [options]
 
 Options:
-  --debug              Build debug APK only
-  --release            Build release APK only
   --split-per-abi      Build per-ABI APKs (armeabi-v7a, arm64-v8a, x86_64)
   --skip-clean         Skip flutter clean
   --skip-gen-i18n      Skip easy_localization generation
   --flavor NAME        Build with product flavor (e.g. production, staging)
   --build-number N     Override build number (e.g. 42)
   --build-name S       Override build name (e.g. 1.2.3)
-  --obfuscate          Enable Dart code obfuscation (release only)
+  --obfuscate          Enable Dart code obfuscation
   --split-debug-info D Store debug info symbols to directory D (with --obfuscate)
   --target-platform P  Target platform(s) (android-arm, android-arm64, android-x64)
   --dart-define K=V    Pass a Dart define (repeatable)
@@ -26,13 +24,11 @@ Options:
   --verbose            Pass --verbose to flutter build
   -h, --help           Show this help
 
-If neither --debug nor --release is provided, both will be built.
+This script builds RELEASE APK only.
 Artifacts will be under build/app/outputs/flutter-apk/
 USAGE
 }
 
-BUILD_DEBUG=false
-BUILD_RELEASE=false
 SPLIT_PER_ABI=false
 SKIP_CLEAN=false
 SKIP_GEN_I18N=false
@@ -48,8 +44,6 @@ DART_DEFINES=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --debug) BUILD_DEBUG=true ;;
-    --release) BUILD_RELEASE=true ;;
     --split-per-abi) SPLIT_PER_ABI=true ;;
     --skip-clean) SKIP_CLEAN=true ;;
     --skip-gen-i18n) SKIP_GEN_I18N=true ;;
@@ -67,11 +61,6 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-
-if [ "$BUILD_DEBUG" = false ] && [ "$BUILD_RELEASE" = false ]; then
-  BUILD_DEBUG=true
-  BUILD_RELEASE=true
-fi
 
 cd "$PROJECT_ROOT_DIR"
 
@@ -132,15 +121,8 @@ if [ ${#DART_DEFINES[@]} -gt 0 ]; then
   BUILD_FLAGS+=("${DART_DEFINES[@]}")
 fi
 
-if [ "$BUILD_DEBUG" = true ]; then
-  echo "🔧 Building Debug APK..."
-  flutter build apk --debug ${BUILD_FLAGS[*]:-}
-fi
-
-if [ "$BUILD_RELEASE" = true ]; then
-  echo "🚀 Building Release APK..."
-  flutter build apk --release ${BUILD_FLAGS[*]:-}
-fi
+echo "🚀 Building Release APK..."
+flutter build apk --release ${BUILD_FLAGS[*]:-}
 
 echo "✅ Done. Artifacts located at: build/app/outputs/flutter-apk/"
 
