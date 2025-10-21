@@ -41,6 +41,9 @@ class UserPreferencesModel extends HiveObject {
   @HiveField(11)
   final String appTheme; // 'light', 'dark', 'system'
 
+  @HiveField(12)
+  final bool enableNotificationSound; // Bật âm thanh thông báo
+
   UserPreferencesModel({
     this.language = 'vi',
     this.dateFormat = 'dd/MM/yyyy',
@@ -54,6 +57,7 @@ class UserPreferencesModel extends HiveObject {
     this.enableDarkMode = false,
     this.enableHapticFeedback = true,
     this.appTheme = 'system',
+    this.enableNotificationSound = true,
   });
 
   /// Tạo copy với các field được update
@@ -70,6 +74,7 @@ class UserPreferencesModel extends HiveObject {
     bool? enableDarkMode,
     bool? enableHapticFeedback,
     String? appTheme,
+    bool? enableNotificationSound,
   }) {
     return UserPreferencesModel(
       language: language ?? this.language,
@@ -84,6 +89,7 @@ class UserPreferencesModel extends HiveObject {
       enableDarkMode: enableDarkMode ?? this.enableDarkMode,
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
       appTheme: appTheme ?? this.appTheme,
+      enableNotificationSound: enableNotificationSound ?? this.enableNotificationSound,
     );
   }
 
@@ -110,6 +116,11 @@ class UserPreferencesModel extends HiveObject {
   /// Getter để check xem có nên enable haptic feedback không
   bool get shouldEnableHaptic {
     return enableHapticFeedback;
+  }
+
+  /// Getter để check xem có nên phát âm thanh thông báo không
+  bool get shouldPlayNotificationSound {
+    return enableNotificationSound;
   }
 
   /// Getter để lấy theme mode
@@ -169,9 +180,14 @@ class UserPreferencesModel extends HiveObject {
     return copyWith(enableHapticFeedback: !enableHapticFeedback);
   }
 
+  /// Toggle notification sound
+  UserPreferencesModel toggleNotificationSound() {
+    return copyWith(enableNotificationSound: !enableNotificationSound);
+  }
+
   @override
   String toString() {
-    return 'UserPreferencesModel(language: $language, dateFormat: $dateFormat, timeFormat: $timeFormat, showNotifications: $showNotifications, showTaskProgress: $showTaskProgress, showDailyStats: $showDailyStats, showPomodoroCounter: $showPomodoroCounter, showSessionProgress: $showSessionProgress, defaultTaskCategory: $defaultTaskCategory, enableDarkMode: $enableDarkMode, enableHapticFeedback: $enableHapticFeedback, appTheme: $appTheme)';
+    return 'UserPreferencesModel(language: $language, dateFormat: $dateFormat, timeFormat: $timeFormat, showNotifications: $showNotifications, showTaskProgress: $showTaskProgress, showDailyStats: $showDailyStats, showPomodoroCounter: $showPomodoroCounter, showSessionProgress: $showSessionProgress, defaultTaskCategory: $defaultTaskCategory, enableDarkMode: $enableDarkMode, enableHapticFeedback: $enableHapticFeedback, appTheme: $appTheme, enableNotificationSound: $enableNotificationSound)';
   }
 
   @override
@@ -189,7 +205,8 @@ class UserPreferencesModel extends HiveObject {
         other.defaultTaskCategory == defaultTaskCategory &&
         other.enableDarkMode == enableDarkMode &&
         other.enableHapticFeedback == enableHapticFeedback &&
-        other.appTheme == appTheme;
+        other.appTheme == appTheme &&
+        other.enableNotificationSound == enableNotificationSound;
   }
 
   @override
@@ -205,6 +222,7 @@ class UserPreferencesModel extends HiveObject {
         defaultTaskCategory.hashCode ^
         enableDarkMode.hashCode ^
         enableHapticFeedback.hashCode ^
-        appTheme.hashCode;
+        appTheme.hashCode ^
+        enableNotificationSound.hashCode;
   }
 }

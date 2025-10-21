@@ -9,8 +9,26 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsFontsGen {
+  const $AssetsFontsGen();
+
+  /// File path: assets/fonts/PatrickHandSC-Regular.ttf
+  String get patrickHandSCRegular => 'assets/fonts/PatrickHandSC-Regular.ttf';
+
+  /// List of all assets
+  List<String> get values => [patrickHandSCRegular];
+}
+
 class $AssetsImagesGen {
   const $AssetsImagesGen();
+
+  /// File path: assets/images/app_icon.png
+  AssetGenImage get appIcon =>
+      const AssetGenImage('assets/images/app_icon.png');
+
+  /// File path: assets/images/app_icon_test.png
+  AssetGenImage get appIconTest =>
+      const AssetGenImage('assets/images/app_icon_test.png');
 
   /// File path: assets/images/background.jpg
   AssetGenImage get background =>
@@ -71,6 +89,8 @@ class $AssetsImagesGen {
 
   /// List of all assets
   List<AssetGenImage> get values => [
+        appIcon,
+        appIconTest,
         background,
         borderButton,
         duck,
@@ -86,6 +106,16 @@ class $AssetsImagesGen {
         icPlay,
         icRight
       ];
+}
+
+class $AssetsSoundsGen {
+  const $AssetsSoundsGen();
+
+  /// File path: assets/sounds/quack.mp3
+  String get quack => 'assets/sounds/quack.mp3';
+
+  /// List of all assets
+  List<String> get values => [quack];
 }
 
 class $AssetsTranslationsGen {
@@ -152,7 +182,9 @@ class $AssetsImagesNavigationGen {
 class Assets {
   Assets._();
 
+  static const $AssetsFontsGen fonts = $AssetsFontsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const $AssetsSoundsGen sounds = $AssetsSoundsGen();
   static const $AssetsTranslationsGen translations = $AssetsTranslationsGen();
 }
 

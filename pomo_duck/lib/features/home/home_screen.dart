@@ -8,6 +8,7 @@ import 'package:pomo_duck/common/utils/font_size.dart';
 import 'package:pomo_duck/common/widgets/text.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/generated/locale_keys.g.dart';
+import 'package:pomo_duck/core/audio/audio_service.dart';
 
 // import '../../common/global_bloc/language/language_cubit.dart';
 // import '../../generated/locale_keys.g.dart';
@@ -27,7 +28,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final AudioService _audioService = AudioService();
 
+  @override
+  void initState() {
+    super.initState();
+    _audioService.initialize();
+  }
+
+  @override
+  void dispose() {
+    _audioService.dispose();
+    super.dispose();
+  }
 
   Future<void> _showPomodoroSettingsSheet(BuildContext context) async {
     await showModalBottomSheet(
@@ -332,6 +345,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             if (!formKey.currentState!.validate()) return;
+                            
+                            // Phát âm thanh quack khi bấm start
+                            _audioService.playQuack();
+                            
                             // Lấy pomodoroCycleCount từ cài đặt hiện tại
                             final configState = context.read<ConfigPomodoroCubit>().state;
                             final estimatedPomodoros = configState.settings.effectivePomodoroCycleCount;
@@ -410,9 +427,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 35,
                       ),
                       50.height,
-                      Assets.images.duck.image(
-                        width: 300,
-                        height: 300,
+                      GestureDetector(
+                        onTap: () {
+                          // Phát âm thanh quack khi bấm vào hình con vịt
+                          _audioService.playQuack();
+                        },
+                        child: Assets.images.duck.image(
+                          width: 300,
+                          height: 300,
+                        ),
                       ),
                       10.height,
                       // Show config of pomodoro app
@@ -459,6 +482,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Center(
                         child: GestureDetector(
                           onTap: () async {
+                            // Phát âm thanh quack khi bấm nút start chính
+                            _audioService.playQuack();
                             await _showStartTaskSheet(context);
                           },
                           child: Stack(

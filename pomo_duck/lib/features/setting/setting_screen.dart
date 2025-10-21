@@ -206,46 +206,24 @@ class _SettingScreenState extends State<SettingScreen>
                   ),
                   const Divider(),
 
-                  // Notifications - Ẩn theo yêu cầu
-                  // SwitchListTile(
-                  //   title: Text('settings_notifications'.tr()),
-                  //   value: prefs.showNotifications,
-                  //   onChanged: (v) async {
-                  //     await context.read<SettingCubit>().setNotifications(v);
-                  //   },
-                  // ),
+                  // Notifications
+                  SwitchListTile(
+                    title: LCText.medium(LocaleKeys.settings_notifications),
+                    value: prefs.showNotifications,
+                    onChanged: (v) async {
+                      await context.read<SettingCubit>().setNotifications(v);
+                    },
+                  ),
 
-                  // Notification sound picker - Ẩn theo yêu cầu
-                  // ListTile(
-                  //   title: Text('settings_notification_sound'.tr()),
-                  //   subtitle: Text(sound.capitalizeFirstLetter()),
-                  //   trailing: const Icon(Icons.chevron_right),
-                  //   onTap: () async {
-                  //     final selected = await showModalBottomSheet<String>(
-                  //       context: context,
-                  //       builder: (context) {
-                  //         final items = <String>['default', 'soft', 'bell', 'ding'];
-                  //         return SafeArea(
-                  //           child: ListView(
-                  //             children: [
-                  //               for (final s in items)
-                  //                 RadioListTile<String>(
-                  //                   title: Text('notification_sound_$s'.tr()),
-                  //                   value: s,
-                  //                   groupValue: sound,
-                  //                   onChanged: (val) => Navigator.of(context).pop(val),
-                  //                 ),
-                  //             ],
-                  //           ),
-                  //         );
-                  //       },
-                  //     );
-                  //     if (selected != null) {
-                  //       await context.read<SettingCubit>().setNotificationSound(selected);
-                  //     }
-                  //   },
-                  // ),
-                  // const Divider(),
+                  // Enable notification sound
+                  SwitchListTile(
+                    title: LCText.medium(LocaleKeys.settings_enable_notification_sound),
+                    value: prefs.enableNotificationSound,
+                    onChanged: (v) async {
+                      await context.read<SettingCubit>().setEnableNotificationSound(v);
+                    },
+                  ),
+                  const Divider(),
 
                   // Haptic - Ẩn theo yêu cầu
                   // SwitchListTile(

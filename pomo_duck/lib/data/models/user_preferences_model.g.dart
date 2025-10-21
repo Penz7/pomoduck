@@ -29,13 +29,14 @@ class UserPreferencesModelAdapter extends TypeAdapter<UserPreferencesModel> {
       enableDarkMode: fields[9] as bool,
       enableHapticFeedback: fields[10] as bool,
       appTheme: fields[11] as String,
+      enableNotificationSound: fields[12] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserPreferencesModel obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
@@ -59,7 +60,9 @@ class UserPreferencesModelAdapter extends TypeAdapter<UserPreferencesModel> {
       ..writeByte(10)
       ..write(obj.enableHapticFeedback)
       ..writeByte(11)
-      ..write(obj.appTheme);
+      ..write(obj.appTheme)
+      ..writeByte(12)
+      ..write(obj.enableNotificationSound);
   }
 
   @override

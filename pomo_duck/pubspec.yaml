@@ -36,6 +36,9 @@ dependencies:
   path: ^1.8.3
   # ui components
   percent_indicator: ^4.2.3
+  # audio player
+  just_audio: ^0.9.46
+  
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +59,7 @@ flutter:
     - assets/images/navigation/
     - assets/translations/
     - assets/fonts/
+    - assets/sounds/
 
   fonts:
     - family: PatrickHandSC-Regular

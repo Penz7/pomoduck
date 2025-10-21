@@ -17,12 +17,11 @@ class SettingCubit extends Cubit<SettingState> {
 
   Future<void> _init() async {
     final prefs = HiveDataManager.getUserPreferences();
-    final sound = _readNotificationSoundFromCache() ?? 'default';
     final tags = HiveDataManager.getPomodoroTags();
 
     emit(SettingLoaded(
       preferences: prefs,
-      notificationSound: sound,
+      notificationSound: 'quack', // Mặc định sử dụng quack sound
       pomodoroTags: tags,
     ));
 
@@ -34,7 +33,7 @@ class SettingCubit extends Cubit<SettingState> {
       } else {
         emit(SettingLoaded(
           preferences: next,
-          notificationSound: sound,
+          notificationSound: 'quack',
           pomodoroTags: tags,
         ));
       }
@@ -43,18 +42,6 @@ class SettingCubit extends Cubit<SettingState> {
     HiveDataManager.preferencesListener.addListener(_prefsListener);
   }
 
-  String? _readNotificationSoundFromCache() {
-    final data = HiveDataManager.getCachedData('notification_prefs');
-    return data != null ? (data['sound'] as String?) : null;
-  }
-
-  Future<void> _saveNotificationSoundToCache(String sound) async {
-    await HiveDataManager.saveCachedData('notification_prefs', {'sound': sound});
-    final current = state;
-    if (current is SettingLoaded) {
-      emit(current.copyWith(notificationSound: sound));
-    }
-  }
 
   // ===== Update methods =====
   Future<void> changeLanguage(String language) async {
@@ -127,8 +114,12 @@ class SettingCubit extends Cubit<SettingState> {
     }
   }
 
-  Future<void> setNotificationSound(String sound) async {
-    await _saveNotificationSoundToCache(sound);
+
+  Future<void> setEnableNotificationSound(bool enabled) async {
+    final current = state;
+    if (current is SettingLoaded) {
+      await HiveDataManager.updatePreference(enableNotificationSound: enabled);
+    }
   }
 
   @override

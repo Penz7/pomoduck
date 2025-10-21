@@ -158,6 +158,7 @@ class HiveDataManager {
     bool? enableDarkMode,
     bool? enableHapticFeedback,
     String? appTheme,
+    bool? enableNotificationSound,
   }) async {
     final currentPreferences = getUserPreferences();
     final updatedPreferences = currentPreferences.copyWith(
@@ -173,6 +174,7 @@ class HiveDataManager {
       enableDarkMode: enableDarkMode,
       enableHapticFeedback: enableHapticFeedback,
       appTheme: appTheme,
+      enableNotificationSound: enableNotificationSound,
     );
     await saveUserPreferences(updatedPreferences);
   }

@@ -73,9 +73,11 @@ abstract class  LocaleKeys {
   static const time_format_24h = 'time_format_24h';
   static const time_format_12h = 'time_format_12h';
   static const notification_sound_default = 'notification_sound_default';
+  static const notification_sound_quack = 'notification_sound_quack';
   static const notification_sound_soft = 'notification_sound_soft';
   static const notification_sound_bell = 'notification_sound_bell';
   static const notification_sound_ding = 'notification_sound_ding';
+  static const settings_enable_notification_sound = 'settings_enable_notification_sound';
   static const pause_quotes_0 = 'pause_quotes_0';
   static const pause_quotes_1 = 'pause_quotes_1';
   static const pause_quotes_2 = 'pause_quotes_2';
