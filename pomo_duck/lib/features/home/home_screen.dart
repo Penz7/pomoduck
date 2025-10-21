@@ -260,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: ctx.bottomPadding,
           ),
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formKey,
               child: Column(
@@ -289,7 +290,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.w500,
                       color: Colors.black,
                     ),
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      // Tự động submit khi nhấn Enter
+                      if (formKey.currentState!.validate()) {
+                        // Logic submit sẽ được thực hiện trong button
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: LocaleKeys.task_title.tr(),
                       border: const OutlineInputBorder(),
