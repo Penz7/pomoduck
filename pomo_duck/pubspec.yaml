@@ -55,6 +55,12 @@ flutter:
     - assets/images/
     - assets/images/navigation/
     - assets/translations/
+    - assets/fonts/
+
+  fonts:
+    - family: PatrickHandSC-Regular
+      fonts:
+        - asset: assets/fonts/PatrickHandSC-Regular.ttf
 
 
 flutter_gen:

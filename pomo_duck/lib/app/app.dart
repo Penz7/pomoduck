@@ -79,9 +79,7 @@ class _AppState extends State<App> {
                 appBarTheme: const AppBarTheme(
                   surfaceTintColor: Colors.white,
                 ),
-                textTheme: GoogleFonts.patrickHandScTextTheme(
-                  Theme.of(context).textTheme,
-                ),
+                fontFamily: 'PatrickHandSC-Regular',
               ),
               localizationsDelegates: context.localizationDelegates,
               supportedLocales: context.supportedLocales,
