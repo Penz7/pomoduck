@@ -46,10 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 16,
             bottom: ctx.bottomPadding,
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+          child: SizedBox(
+            height: MediaQuery.of(ctx).size.height * 0.8,
+            child: ListView(
+              padding: EdgeInsets.zero,
               children: [
                 Row(
                   children: [
@@ -245,7 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     await showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -260,7 +259,6 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: ctx.bottomPadding,
           ),
           child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formKey,
               child: Column(
