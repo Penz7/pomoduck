@@ -169,5 +169,6 @@
   "stats_productivity_score": "Điểm hiệu suất",
   "minutes_short": "phút"
   ,
-  "stats_load_failed": "Không thể tải thống kê: {0}"
+  "stats_load_failed": "Không thể tải thống kê: {0}",
+  "streak_reset_stop_message": "Streak đã được reset do dừng giữa chừng"
 }

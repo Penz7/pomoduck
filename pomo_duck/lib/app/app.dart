@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pomo_duck/app/router/app_router.dart';
 import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cubit.dart';
 
 import '../common/global_bloc/app/app_cubit.dart';
 import '../common/global_bloc/language/language_cubit.dart';
+import '../common/global_bloc/score/score_bloc.dart';
 import '../common/theme/colors.dart';
 
 class App extends StatefulWidget {
@@ -50,6 +50,9 @@ class _AppState extends State<App> {
           ),
           BlocProvider(
             create: (_) => ConfigPomodoroCubit(),
+          ),
+          BlocProvider(
+            create: (_) => ScoreBloc(),
           ),
           // BlocProvider(
           //   create: (_) => NotificationNumberCubit(),

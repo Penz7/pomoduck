@@ -9,6 +9,10 @@ import 'package:pomo_duck/common/widgets/text.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/generated/locale_keys.g.dart';
 import 'package:pomo_duck/core/audio/audio_service.dart';
+import 'package:pomo_duck/common/widgets/score_display.dart';
+import 'package:pomo_duck/common/widgets/tag_chip.dart';
+import 'package:pomo_duck/common/global_bloc/score/score_bloc.dart';
+import 'package:pomo_duck/core/services/score_service.dart';
 
 // import '../../common/global_bloc/language/language_cubit.dart';
 // import '../../generated/locale_keys.g.dart';
@@ -82,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
                   builder: (context, state) {
                     final s = state.settings;
-
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,23 +99,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           runSpacing: 8,
                           children: [
                             for (final tag in state.tags)
-                              ChoiceChip(
-                                label: LCText.medium(
-                                  tag,
-                                  color: state.selectedTag == tag
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                                checkmarkColor: state.selectedTag == tag
-                                    ? Colors.white
-                                    : Colors.black,
-                                selected: state.selectedTag == tag,
-                                onSelected: (_) => context
+                              TagChip(
+                                tag: tag,
+                                isSelected: state.selectedTag == tag,
+                                onTap: () => context
                                     .read<ConfigPomodoroCubit>()
                                     .selectTag(tag),
-                                selectedColor: Colors.black,
+                                onDelete: () => context
+                                    .read<ConfigPomodoroCubit>()
+                                    .removeTag(tag),
                               ),
-                            const _AddTagChip(),
+                            const AddTagChip(),
                           ],
                         ),
                         16.height,
@@ -196,7 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             min: 1,
                             max: 30,
                             divisions: 29,
-                            label: (s.shortBreakDuration / 60).round().toString(),
+                            label:
+                                (s.shortBreakDuration / 60).round().toString(),
                             onChanged: (value) => context
                                 .read<ConfigPomodoroCubit>()
                                 .updateShortBreakMinutes(value.round()),
@@ -212,7 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             min: 5,
                             max: 60,
                             divisions: 11,
-                            label: (s.longBreakDuration / 60).round().toString(),
+                            label:
+                                (s.longBreakDuration / 60).round().toString(),
                             onChanged: (value) => context
                                 .read<ConfigPomodoroCubit>()
                                 .updateLongBreakMinutes(value.round()),
@@ -237,6 +236,125 @@ class _HomeScreenState extends State<HomeScreen> {
                             secondaryActiveColor: Colors.black,
                           ),
                         ],
+                        Row(
+                          children: [
+                            Assets.images.duckTag.image(
+                              width: 20,
+                              height: 20,
+                              fit: BoxFit.contain,
+                            ),
+                            8.width,
+                            LCText.bold(
+                              'Điểm số dự kiến',
+                              fontSize: FontSizes.medium,
+                            ),
+                          ],
+                        ),
+                        8.height,
+                        BlocBuilder<ConfigPomodoroCubit, ConfigPomodoroState>(
+                          builder: (context, state) {
+                            final settings = state.settings;
+                            final scoreService = ScoreService();
+
+                            final expectedPoints =
+                                scoreService.calculateSessionPoints(
+                              isStandardMode: settings.isStandardMode,
+                              workDuration: settings.workDuration,
+                              shortBreakDuration: settings.shortBreakDuration,
+                              longBreakDuration: settings.longBreakDuration,
+                              sessionsCompleted:
+                                  settings.effectivePomodoroCycleCount,
+                            );
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                LCText.medium(
+                                  'Hoàn thành pomodoro sẽ nhận được:',
+                                  fontSize: FontSizes.small,
+                                  color: Colors.grey.shade700,
+                                ),
+                                4.height,
+                                LCText.bold(
+                                  '+$expectedPoints điểm',
+                                  fontSize: FontSizes.big,
+                                ),
+                                8.height,
+                                if (settings.isStandardMode) ...[
+                                  LCText.medium(
+                                    '• Chế độ chuẩn: 150 điểm cố định',
+                                    fontSize: FontSizes.extraSmall,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ] else ...[
+                                  LCText.medium(
+                                    '• Chế độ tùy chỉnh: ${settings.effectivePomodoroCycleCount} phiên × 10 điểm',
+                                    fontSize: FontSizes.extraSmall,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  2.height,
+                                  LCText.medium(
+                                    '• Thời gian học: ${(settings.workDuration / 60).round()} phút × 1 điểm',
+                                    fontSize: FontSizes.extraSmall,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  2.height,
+                                  LCText.medium(
+                                    '• Short break: ${(settings.shortBreakDuration / 60).round()} phút (tối đa 20 điểm)',
+                                    fontSize: FontSizes.extraSmall,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  2.height,
+                                  LCText.medium(
+                                    '• Long break: ${(settings.longBreakDuration / 60).round()} phút (tối đa 50 điểm)',
+                                    fontSize: FontSizes.extraSmall,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
+                        ),
+                        12.height,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: Colors.black.withOpacity(0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.local_fire_department,
+                                    color: Colors.black,
+                                    size: 16,
+                                  ),
+                                  8.width,
+                                  LCText.medium(
+                                    'Streak Bonus',
+                                    fontSize: FontSizes.small,
+                                  ),
+                                ],
+                              ),
+                              4.height,
+                              LCText.medium(
+                                '• Mỗi 5 task liên tiếp: +200 điểm',
+                                fontSize: FontSizes.extraSmall,
+                                color: Colors.grey.shade600,
+                              ),
+                              2.height,
+                              LCText.medium(
+                                '• Streak 30 ngày: +1000 điểm đặc biệt',
+                                fontSize: FontSizes.extraSmall,
+                                color: Colors.grey.shade600,
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -345,13 +463,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             if (!formKey.currentState!.validate()) return;
-                            
+
                             // Phát âm thanh quack khi bấm start
                             _audioService.playQuack();
-                            
+
                             // Lấy pomodoroCycleCount từ cài đặt hiện tại
-                            final configState = context.read<ConfigPomodoroCubit>().state;
-                            final estimatedPomodoros = configState.settings.effectivePomodoroCycleCount;
+                            final configState =
+                                context.read<ConfigPomodoroCubit>().state;
+                            final estimatedPomodoros = configState
+                                .settings.effectivePomodoroCycleCount;
 
                             final task = TaskModel(
                               title: titleCtrl.text.trim(),
@@ -361,13 +481,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               tag: selectedTag,
                             );
                             final taskId =
-                            await DatabaseHelper.instance.insertTask(task);
+                                await DatabaseHelper.instance.insertTask(task);
                             await HybridDataCoordinator.instance
                                 .startPomodoroSession(
                               taskId: taskId,
                               sessionType: 'work',
                             );
                             if (ctx.mounted) {
+                              // Refresh điểm số sau khi tạo task
+                              context.read<ScoreBloc>().updateScore();
                               Navigator.of(ctx).pop();
                               ctx.goWithPath('/home/pomodoro');
                             }
@@ -421,15 +543,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      LCText.bold(
-                        LocaleKeys.app_title,
-                        textAlign: TextAlign.center,
-                        fontSize: 35,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const PointsDisplay(),
+                            Expanded(
+                              child: LCText.bold(
+                                LocaleKeys.app_title,
+                                textAlign: TextAlign.center,
+                                fontSize: 35,
+                              ),
+                            ),
+                            const StreakDisplay(),
+                          ],
+                        ),
                       ),
-                      50.height,
+                      20.height,
                       GestureDetector(
                         onTap: () {
-                          // Phát âm thanh quack khi bấm vào hình con vịt
                           _audioService.playQuack();
                         },
                         child: Assets.images.duck.image(
@@ -438,7 +571,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       10.height,
-                      // Show config of pomodoro app
                       InkWell(
                         onTap: () async {
                           await _showPomodoroSettingsSheet(context);
@@ -482,7 +614,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       Center(
                         child: GestureDetector(
                           onTap: () async {
-                            // Phát âm thanh quack khi bấm nút start chính
                             _audioService.playQuack();
                             await _showStartTaskSheet(context);
                           },
@@ -512,46 +643,3 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _AddTagChip extends StatelessWidget {
-  const _AddTagChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return ActionChip(
-      label: LCText.medium(LocaleKeys.add_tag),
-      onPressed: () async {
-        final controller = TextEditingController();
-        await showDialog(
-          context: context,
-          builder: (dCtx) {
-            return AlertDialog(
-              title: Text(LocaleKeys.add_new_tag.tr()),
-              content: TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  hintText: LocaleKeys.enter_tag_name.tr(),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dCtx).pop(),
-                  child: Text(LocaleKeys.cancel.tr()),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final t = controller.text.trim();
-                    if (t.isNotEmpty) {
-                      context.read<ConfigPomodoroCubit>().addTag(t);
-                    }
-                    Navigator.of(dCtx).pop();
-                  },
-                  child: Text(LocaleKeys.add.tr()),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-}

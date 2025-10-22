@@ -3,25 +3,43 @@ import 'package:flutter/foundation.dart';
 import '../../data/models/pomodoro_settings.dart';
 import '../../data/models/current_timer_state.dart';
 import '../../data/models/user_preferences_model.dart';
+import '../../data/models/user_score_model.dart';
 
 
 class HiveDataManager {
   static const String _settingsBoxName = 'pomodoro_settings';
   static const String _timerStateBoxName = 'timer_state';
   static const String _userPreferencesBoxName = 'user_preferences';
+  static const String _userScoreBoxName = 'user_score';
   static const String _cacheBoxName = 'cache_data';
 
   // Box instances
   static late Box<PomodoroSettings> _settingsBox;
   static late Box<CurrentTimerState> _timerStateBox;
   static late Box<UserPreferencesModel> _userPreferencesBox;
+  static late Box<UserScoreModel> _userScoreBox;
   static late Box<Map> _cacheBox;
 
   /// Initialize all Hive boxes
   static Future<void> initialize() async {
+    // Đăng ký adapters
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(PomodoroSettingsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(CurrentTimerStateAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(UserPreferencesModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter(UserScoreModelAdapter());
+    }
+    
     _settingsBox = await Hive.openBox<PomodoroSettings>(_settingsBoxName);
     _timerStateBox = await Hive.openBox<CurrentTimerState>(_timerStateBoxName);
     _userPreferencesBox = await Hive.openBox<UserPreferencesModel>(_userPreferencesBoxName);
+    _userScoreBox = await Hive.openBox<UserScoreModel>(_userScoreBoxName);
     _cacheBox = await Hive.openBox<Map>(_cacheBoxName);
   }
 
@@ -250,10 +268,40 @@ class HiveDataManager {
     await _cacheBox.clear();
   }
 
+  // ==================== USER SCORE ====================
+
+  /// Get user score
+  static UserScoreModel getUserScore() {
+    final score = _userScoreBox.get('score');
+    if (score != null) {
+      return score;
+    }
+    
+    // Tạo score mặc định nếu chưa có
+    final now = DateTime.now();
+    final defaultScore = UserScoreModel(
+      lastTaskCompletedDate: now.subtract(const Duration(days: 1)),
+      createdAt: now,
+      updatedAt: now,
+    );
+    return defaultScore;
+  }
+
+  /// Save user score
+  static Future<void> saveUserScore(UserScoreModel score) async {
+    await _userScoreBox.put('score', score);
+  }
+
+  /// Update user score
+  static Future<void> updateUserScore(UserScoreModel score) async {
+    await saveUserScore(score);
+  }
+
   /// Get box listeners for reactive UI
   static ValueListenable<Box<PomodoroSettings>> get settingsListener => _settingsBox.listenable();
   static ValueListenable<Box<CurrentTimerState>> get timerStateListener => _timerStateBox.listenable();
   static ValueListenable<Box<UserPreferencesModel>> get preferencesListener => _userPreferencesBox.listenable();
+  static ValueListenable<Box<UserScoreModel>> get userScoreListener => _userScoreBox.listenable();
   static ValueListenable<Box<Map>> get cacheListener => _cacheBox.listenable();
 
   /// Close all boxes
@@ -261,6 +309,7 @@ class HiveDataManager {
     await _settingsBox.close();
     await _timerStateBox.close();
     await _userPreferencesBox.close();
+    await _userScoreBox.close();
     await _cacheBox.close();
   }
 }

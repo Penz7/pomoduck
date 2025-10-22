@@ -6,6 +6,10 @@ import '../../data/models/pomodoro_cycle_model.dart';
 import '../../data/models/statistics_model.dart';
 import '../../data/database/database_helper.dart';
 import '../local_storage/hive_data_manager.dart';
+import '../services/score_service.dart';
+import '../services/streak_service.dart';
+import '../../common/global_bloc/score/score_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// HybridDataCoordinator - Integration layer giữa Hive và SQLite
 /// Tối ưu performance với hybrid strategy:
@@ -335,6 +339,10 @@ class HybridDataCoordinator {
           updatedAt: DateTime.now(),
         );
         await DatabaseHelper.instance.updateTask(completedTask);
+        
+        // Tính điểm và cập nhật streak sau khi hoàn thành task
+        await _updateScoreAndStreak(task);
+        
         return true; // Task completed successfully
       }
       return false;
@@ -342,6 +350,52 @@ class HybridDataCoordinator {
       // Log error but don't throw to avoid breaking session completion
       print('Error completing task: $e');
       return false;
+    }
+  }
+
+  /// Cập nhật điểm số và streak sau khi hoàn thành task
+  Future<void> _updateScoreAndStreak(TaskModel task) async {
+    try {
+      final settings = HiveDataManager.getSettings();
+      final scoreService = ScoreService();
+      final streakService = StreakService();
+      
+      // Tính điểm cho task hoàn thành
+      final sessionPoints = scoreService.calculateSessionPoints(
+        isStandardMode: settings.isStandardMode,
+        workDuration: settings.workDuration,
+        shortBreakDuration: settings.shortBreakDuration,
+        longBreakDuration: settings.longBreakDuration,
+        sessionsCompleted: task.estimatedPomodoros,
+      );
+      
+      // Cập nhật streak
+      await streakService.updateStreakOnTaskCompletion();
+      
+      // Lấy điểm số hiện tại và cộng điểm
+      final currentScore = HiveDataManager.getUserScore();
+      final updatedScore = currentScore.addPoints(sessionPoints);
+      
+      // Tính điểm bonus streak
+      final streakBonus = scoreService.calculateStreakBonus(updatedScore.currentStreak);
+      if (streakBonus > 0) {
+        final finalScore = updatedScore.addPoints(streakBonus).copyWith(
+          bonusPointsEarned: updatedScore.bonusPointsEarned + streakBonus,
+        );
+        await HiveDataManager.saveUserScore(finalScore);
+      } else {
+        await HiveDataManager.saveUserScore(updatedScore);
+      }
+      
+      // Cập nhật ScoreBloc để emit state mới
+      // Note: Cần context để access ScoreBloc, sẽ xử lý trong PomodoroCubit
+      
+      print('Task hoàn thành! +$sessionPoints điểm, Streak: ${updatedScore.currentStreak}');
+      if (streakBonus > 0) {
+        print('Bonus streak: +$streakBonus điểm');
+      }
+    } catch (e) {
+      print('Lỗi cập nhật điểm số: $e');
     }
   }
 

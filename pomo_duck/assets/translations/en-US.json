@@ -169,5 +169,6 @@
   "stats_productivity_score": "Productivity score",
   "minutes_short": "min"
   ,
-  "stats_load_failed": "Failed to load statistics: {0}"
+  "stats_load_failed": "Failed to load statistics: {0}",
+  "streak_reset_stop_message": "Streak has been reset due to stopping mid-session"
 }

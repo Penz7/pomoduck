@@ -10,6 +10,7 @@ import 'common/theme/colors.dart';
 import 'data/models/pomodoro_settings.dart';
 import 'data/models/current_timer_state.dart';
 import 'data/models/user_preferences_model.dart';
+import 'data/models/user_score_model.dart';
 import 'core/local_storage/local_storage_manager.dart';
 import 'core/local_storage/hive_data_manager.dart';
 
@@ -28,6 +29,7 @@ void main() async {
   Hive.registerAdapter(PomodoroSettingsAdapter());
   Hive.registerAdapter(CurrentTimerStateAdapter());
   Hive.registerAdapter(UserPreferencesModelAdapter());
+  Hive.registerAdapter(UserScoreModelAdapter());
   
   // Initialize LocalStorage (secure + boxes) and open app-specific boxes
   await LocalStorageManager.instance.init();

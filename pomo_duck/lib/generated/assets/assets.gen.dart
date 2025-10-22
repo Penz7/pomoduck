@@ -41,6 +41,10 @@ class $AssetsImagesGen {
   /// File path: assets/images/duck.png
   AssetGenImage get duck => const AssetGenImage('assets/images/duck.png');
 
+  /// File path: assets/images/duck_coin.png
+  AssetGenImage get duckCoin =>
+      const AssetGenImage('assets/images/duck_coin.png');
+
   /// File path: assets/images/duck_focus.png
   AssetGenImage get duckFocus =>
       const AssetGenImage('assets/images/duck_focus.png');
@@ -83,6 +87,10 @@ class $AssetsImagesGen {
   AssetGenImage get icRight =>
       const AssetGenImage('assets/images/ic_right.png');
 
+  /// File path: assets/images/ic_streak.png
+  AssetGenImage get icStreak =>
+      const AssetGenImage('assets/images/ic_streak.png');
+
   /// Directory path: assets/images/navigation
   $AssetsImagesNavigationGen get navigation =>
       const $AssetsImagesNavigationGen();
@@ -94,6 +102,7 @@ class $AssetsImagesGen {
         background,
         borderButton,
         duck,
+        duckCoin,
         duckFocus,
         duckPause,
         duckRelax,
@@ -104,7 +113,8 @@ class $AssetsImagesGen {
         icLeft,
         icPause,
         icPlay,
-        icRight
+        icRight,
+        icStreak
       ];
 }
 

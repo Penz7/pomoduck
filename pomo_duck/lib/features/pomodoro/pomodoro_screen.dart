@@ -8,6 +8,8 @@ import 'package:pomo_duck/features/pomodoro/pomodoro_cubit.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cubit.dart';
 import 'package:pomo_duck/generated/locale_keys.g.dart';
+import 'package:pomo_duck/common/widgets/score_display.dart';
+import 'package:pomo_duck/common/global_bloc/score/score_bloc.dart';
 
 class PomodoroScreen extends StatelessWidget {
   const PomodoroScreen({super.key});
@@ -85,6 +87,20 @@ class PomodoroScreen extends StatelessWidget {
     await context.read<PomodoroCubit>().pause();
     if (context.mounted) {
       await context.read<PomodoroCubit>().stop();
+      // Thông báo reset streak do dừng giữa chừng
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Streak đã được reset do dừng giữa chừng'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      // Cập nhật điểm số hiển thị
+      if (context.mounted) {
+        context.read<ScoreBloc>().updateScore();
+      }
       if (context.mounted) {
         Navigator.of(context).pop();
       }
@@ -146,6 +162,7 @@ class PomodoroScreen extends StatelessWidget {
                       if (state is PomodoroTaskCompleted) {
                         _showTaskCompletionDialog(context);
                       }
+                      context.read<ScoreBloc>().updateScore();
                     },
                     child: BlocBuilder<PomodoroCubit, PomodoroState>(
                       builder: (context, state) {
