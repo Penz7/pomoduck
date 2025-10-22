@@ -8,6 +8,7 @@ class PomodoroState {
     required this.sessionType,
     required this.isRunning,
     this.activeCycle,
+    this.sessionShieldActive = false,
   });
 
   final int plannedSeconds;
@@ -15,6 +16,7 @@ class PomodoroState {
   final String sessionType; // 'work', 'shortBreak', 'longBreak'
   final bool isRunning;
   final PomodoroCycleModel? activeCycle;
+  final bool sessionShieldActive; // Khiên đã kích hoạt cho lần dừng kế tiếp trong phiên
 
   int get remainingSeconds => (plannedSeconds - elapsedSeconds).clamp(0, plannedSeconds);
 
@@ -24,6 +26,7 @@ class PomodoroState {
     String? sessionType,
     bool? isRunning,
     PomodoroCycleModel? activeCycle,
+    bool? sessionShieldActive,
   }) {
     return PomodoroState(
       plannedSeconds: plannedSeconds ?? this.plannedSeconds,
@@ -31,6 +34,7 @@ class PomodoroState {
       sessionType: sessionType ?? this.sessionType,
       isRunning: isRunning ?? this.isRunning,
       activeCycle: activeCycle ?? this.activeCycle,
+      sessionShieldActive: sessionShieldActive ?? this.sessionShieldActive,
     );
   }
 }

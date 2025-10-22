@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomo_duck/common/extensions/context_extension.dart';
 import 'package:pomo_duck/common/extensions/size_extension.dart';
 import 'package:pomo_duck/common/global_bloc/language/language_cubit.dart';
+import 'package:pomo_duck/common/global_bloc/shop/global_shop_bloc.dart';
 import 'package:pomo_duck/common/utils/font_size.dart';
 import 'package:pomo_duck/common/widgets/text.dart';
 import 'package:pomo_duck/generated/locale_keys.g.dart';
@@ -265,6 +266,82 @@ class _SettingScreenState extends State<SettingScreen>
                           .setShowSessionProgress(v);
                     },
                   ),
+                  const Divider(),
+                  
+                  // DEBUG PANEL - CHỈ ĐỂ TEST
+                  LCText.bold(
+                    'DEBUG PANEL (CHỈ ĐỂ TEST)',
+                    fontSize: FontSizes.medium,
+                    color: Colors.red,
+                  ),
+                  8.height,
+                  Card(
+                    color: Colors.red.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LCText.medium(
+                            'Điểm Test: 99999',
+                            fontSize: FontSizes.small,
+                            color: Colors.red.shade700,
+                          ),
+                          8.height,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    context.read<GlobalShopBloc>().resetPointsForTest();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Đã set điểm về 99999!'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: LCText.medium(
+                                    'Set 99999 điểm',
+                                    fontSize: FontSizes.small,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              8.width,
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    context.read<GlobalShopBloc>().resetPointsToOriginal();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Đã reset về điểm ban đầu!'),
+                                        backgroundColor: Colors.orange,
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: LCText.medium(
+                                    'Reset điểm',
+                                    fontSize: FontSizes.small,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
                   const Divider(),
                   context.bottomPadding.height,
                 ],

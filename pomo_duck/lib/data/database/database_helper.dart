@@ -6,6 +6,7 @@ import '../models/task_model.dart';
 import '../models/session_model.dart';
 import '../models/pomodoro_cycle_model.dart';
 import '../models/statistics_model.dart';
+import '../models/shop_item_model.dart';
 import '../../generated/locale_keys.g.dart';
 
 class DatabaseHelper {
@@ -26,6 +27,7 @@ class DatabaseHelper {
   static const String _tasksTable = 'tasks';
   static const String _sessionsTable = 'sessions';
   static const String _pomodoroCyclesTable = 'pomodoro_cycles';
+  static const String _shopItemsTable = 'shop_items';
   
   /// Getter cho database instance
   Future<Database> get database async {
@@ -93,6 +95,23 @@ class DatabaseHelper {
       )
     ''');
     
+    // Tạo bảng shop_items
+    await db.execute('''
+      CREATE TABLE $_shopItemsTable (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        price INTEGER NOT NULL,
+        item_type TEXT NOT NULL,
+        icon_path TEXT NOT NULL,
+        is_active INTEGER NOT NULL DEFAULT 0,
+        purchased_at TEXT,
+        expires_at TEXT,
+        created_at TEXT NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    
     // Tạo indexes để tối ưu performance
     await db.execute('CREATE INDEX idx_tasks_created_at ON $_tasksTable (created_at)');
     await db.execute('CREATE INDEX idx_tasks_is_completed ON $_tasksTable (is_completed)');
@@ -102,6 +121,9 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_pomodoro_cycles_start_time ON $_pomodoroCyclesTable (start_time)');
     await db.execute('CREATE INDEX idx_pomodoro_cycles_is_completed ON $_pomodoroCyclesTable (is_completed)');
     await db.execute('CREATE INDEX idx_pomodoro_cycles_created_at ON $_pomodoroCyclesTable (created_at)');
+    await db.execute('CREATE INDEX idx_shop_items_item_type ON $_shopItemsTable (item_type)');
+    await db.execute('CREATE INDEX idx_shop_items_is_active ON $_shopItemsTable (is_active)');
+    await db.execute('CREATE INDEX idx_shop_items_created_at ON $_shopItemsTable (created_at)');
   }
   
   /// Upgrade database không còn sử dụng (schema đã đầy đủ ngay từ onCreate)
@@ -911,6 +933,119 @@ class DatabaseHelper {
     return days[dayOfWeek];
   }
 
+  // ==================== SHOP ITEMS OPERATIONS ====================
+  
+  /// Tạo shop item mới
+  Future<int> insertShopItem(ShopItemModel item) async {
+    final db = await database;
+    return await db.insert(_shopItemsTable, item.toMap());
+  }
+  
+  /// Lấy tất cả shop items
+  Future<List<ShopItemModel>> getAllShopItems() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _shopItemsTable,
+      orderBy: 'created_at DESC',
+    );
+    return maps.map((map) => ShopItemModel.fromMap(map)).toList();
+  }
+  
+  /// Lấy shop item theo ID
+  Future<ShopItemModel?> getShopItemById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _shopItemsTable,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return ShopItemModel.fromMap(maps.first);
+    }
+    return null;
+  }
+  
+  /// Lấy shop items theo loại
+  Future<List<ShopItemModel>> getShopItemsByType(String itemType) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _shopItemsTable,
+      where: 'item_type = ?',
+      whereArgs: [itemType],
+      orderBy: 'created_at DESC',
+    );
+    return maps.map((map) => ShopItemModel.fromMap(map)).toList();
+  }
+  
+  /// Lấy shop items đang active
+  Future<List<ShopItemModel>> getActiveShopItems() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _shopItemsTable,
+      where: 'is_active = 1',
+      orderBy: 'created_at DESC',
+    );
+    return maps.map((map) => ShopItemModel.fromMap(map)).toList();
+  }
+  
+  /// Cập nhật shop item
+  Future<int> updateShopItem(ShopItemModel item) async {
+    final db = await database;
+    return await db.update(
+      _shopItemsTable,
+      item.toMap(),
+      where: 'id = ?',
+      whereArgs: [item.id],
+    );
+  }
+  
+  /// Xóa shop item
+  Future<int> deleteShopItem(int id) async {
+    final db = await database;
+    return await db.delete(
+      _shopItemsTable,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+  
+  /// Khởi tạo shop items mặc định
+  Future<void> initializeDefaultShopItems() async {
+    final existingItems = await getAllShopItems();
+    if (existingItems.isNotEmpty) return; // Đã có items rồi
+    
+    final defaultItems = [
+      ShopItemModel(
+        name: 'Khiên Bảo Vệ',
+        description: 'Được thêm cơ hội nếu khi dừng task đang làm giữa chừng thì không bị mất streak',
+        price: 1500,
+        itemType: 'shield',
+        iconPath: 'assets/icons/shield.png',
+        createdAt: DateTime.now(),
+      ),
+      ShopItemModel(
+        name: 'Kiếm Thời Gian',
+        description: 'Được -5 phút mỗi khi đang làm việc (số phút sẽ được trừ thẳng vào thời gian đang đếm ngược)',
+        price: 1000,
+        itemType: 'sword',
+        iconPath: 'assets/icons/sword.png',
+        createdAt: DateTime.now(),
+      ),
+      ShopItemModel(
+        name: 'Cà Phê Năng Lượng',
+        description: 'Được tăng thời gian nghỉ ngơi của task đang làm lên 5 phút',
+        price: 500,
+        itemType: 'coffee',
+        iconPath: 'assets/icons/coffee.png',
+        createdAt: DateTime.now(),
+      ),
+    ];
+    
+    for (final item in defaultItems) {
+      await insertShopItem(item);
+    }
+  }
+
   // ==================== CLEAR DATA OPERATIONS ====================
 
   /// Xóa toàn bộ dữ liệu trong database
@@ -921,5 +1056,6 @@ class DatabaseHelper {
     await db.delete(_pomodoroCyclesTable);
     await db.delete(_sessionsTable);
     await db.delete(_tasksTable);
+    await db.delete(_shopItemsTable);
   }
 }

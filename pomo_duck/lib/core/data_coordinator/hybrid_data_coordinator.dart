@@ -8,8 +8,7 @@ import '../../data/database/database_helper.dart';
 import '../local_storage/hive_data_manager.dart';
 import '../services/score_service.dart';
 import '../services/streak_service.dart';
-import '../../common/global_bloc/score/score_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import '../services/shop_item_service.dart';
 
 /// HybridDataCoordinator - Integration layer giữa Hive và SQLite
 /// Tối ưu performance với hybrid strategy:
@@ -66,7 +65,16 @@ class HybridDataCoordinator {
     }
     
     // 3. Get duration from settings (use effective values)
-    final plannedDuration = settings.getDurationForSessionType(actualSessionType);
+    int plannedDuration = settings.getDurationForSessionType(actualSessionType);
+    
+    // 3.1 Apply shop item effects
+    if (actualSessionType == 'work') {
+      // Apply sword effect - giảm thời gian work
+      plannedDuration = await ShopItemService.instance.applySwordEffect(plannedDuration);
+    } else if (actualSessionType == 'shortBreak' || actualSessionType == 'longBreak') {
+      // Apply coffee effect - tăng thời gian break
+      plannedDuration = await ShopItemService.instance.applyCoffeeEffect(plannedDuration);
+    }
     
     // 4. Create session in SQLite
     final session = SessionModel(

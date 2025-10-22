@@ -12,6 +12,7 @@ import 'package:pomo_duck/core/audio/audio_service.dart';
 import 'package:pomo_duck/common/widgets/score_display.dart';
 import 'package:pomo_duck/common/widgets/tag_chip.dart';
 import 'package:pomo_duck/common/global_bloc/score/score_bloc.dart';
+import 'package:pomo_duck/common/global_bloc/shop/global_shop_bloc.dart';
 import 'package:pomo_duck/core/services/score_service.dart';
 
 // import '../../common/global_bloc/language/language_cubit.dart';
@@ -529,7 +530,15 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
           },
-          child: BlocBuilder<HomeCubit, HomeState>(
+          child: BlocListener<GlobalShopBloc, GlobalShopState>(
+            listener: (context, state) {
+              if (state is GlobalShopLoaded || 
+                  state is GlobalShopPurchaseSuccess || 
+                  state is GlobalShopPurchaseError) {
+                context.read<ScoreBloc>().updateScore();
+              }
+            },
+            child: BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {
               return Container(
                 decoration: BoxDecoration(
@@ -636,6 +645,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
+          ),
           ),
         ),
       ),

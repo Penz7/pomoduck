@@ -19,6 +19,7 @@ class PomodoroCubit extends Cubit<PomodoroState> {
             sessionType: HiveDataManager.getCurrentTimerState().sessionType,
             isRunning: HiveDataManager.getCurrentTimerState().isRunning,
             activeCycle: null,
+            sessionShieldActive: false,
           ),
         ) {
     _startTicking();
@@ -107,27 +108,28 @@ class PomodoroCubit extends Cubit<PomodoroState> {
     await HiveDataManager.pauseTimer();
     await HybridDataCoordinator.instance.stopSession();
     
-    // Áp dụng penalty cho việc dừng giữa chừng
-    await _applyStopPenalty();
-
-    // Reset streak về 0 khi dừng giữa chừng
-    try {
-      final currentScore = HiveDataManager.getUserScore();
-      final now = DateTime.now();
-      final resetScore = currentScore.copyWith(
-        currentStreak: 0,
-        lastTaskCompletedDate: now.subtract(const Duration(days: 2)), // Đặt về 2 ngày trước để đảm bảo streak bị mất
-        updatedAt: now,
-      );
-      await HiveDataManager.saveUserScore(resetScore);
-      
-      if (kDebugMode) {
-        print('Streak đã bị reset do dừng giữa chừng:');
-        print('- Current streak: 0');
-        print('- Last completed date: ${resetScore.lastTaskCompletedDate}');
-        print('- Is streak broken: ${resetScore.isStreakBroken}');
-      }
-    } catch (_) {}
+    // Shield logic: nếu cờ session_shield_active bật thì bỏ qua penalty và reset cờ
+    final shieldActive = state.sessionShieldActive;
+    if (shieldActive) {
+      emit(state.copyWith(sessionShieldActive: false));
+    } else {
+      // Áp dụng penalty cho việc dừng giữa chừng
+      await _applyStopPenalty();
+      // Reset streak về 0 khi dừng giữa chừng
+      try {
+        final currentScore = HiveDataManager.getUserScore();
+        final now = DateTime.now();
+        final resetScore = currentScore.copyWith(
+          currentStreak: 0,
+          lastTaskCompletedDate: now.subtract(const Duration(days: 2)),
+          updatedAt: now,
+        );
+        await HiveDataManager.saveUserScore(resetScore);
+        if (kDebugMode) {
+          print('Streak đã bị reset do dừng giữa chừng (không có khiên)');
+        }
+      } catch (_) {}
+    }
     
     try {
       final active = await HybridDataCoordinator.instance.getActiveCycle();
@@ -149,6 +151,24 @@ class PomodoroCubit extends Cubit<PomodoroState> {
 
   void _showTaskCompletionDialog() {
     emit(const PomodoroTaskCompleted());
+  }
+
+  /// Kích hoạt khiên cho phiên hiện tại (bỏ qua penalty lần dừng kế tiếp)
+  void activateSessionShield() {
+    if (!state.sessionShieldActive) {
+      emit(state.copyWith(sessionShieldActive: true));
+    }
+  }
+
+  /// Refresh timer state từ HiveDataManager
+  void refreshTimer() {
+    final current = HiveDataManager.getCurrentTimerState();
+    emit(state.copyWith(
+      elapsedSeconds: current.elapsedSeconds,
+      plannedSeconds: current.plannedDurationSeconds,
+      sessionType: current.sessionType,
+      isRunning: current.isRunning,
+    ));
   }
 
   /// Bắt đầu theo dõi thời gian pause

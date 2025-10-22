@@ -7,6 +7,7 @@ import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cub
 import '../common/global_bloc/app/app_cubit.dart';
 import '../common/global_bloc/language/language_cubit.dart';
 import '../common/global_bloc/score/score_bloc.dart';
+import '../common/global_bloc/shop/global_shop_bloc.dart';
 import '../common/theme/colors.dart';
 
 class App extends StatefulWidget {
@@ -53,6 +54,9 @@ class _AppState extends State<App> {
           ),
           BlocProvider(
             create: (_) => ScoreBloc(),
+          ),
+          BlocProvider(
+            create: (_) => GlobalShopBloc(),
           ),
           // BlocProvider(
           //   create: (_) => NotificationNumberCubit(),

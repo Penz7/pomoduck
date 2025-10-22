@@ -6,6 +6,7 @@ import 'package:pomo_duck/features/history/history_screen.dart';
 import 'package:pomo_duck/features/pomodoro/pomodoro_screen.dart';
 import 'package:pomo_duck/features/setting/setting_screen.dart';
 import 'package:pomo_duck/features/statistic/statistic_screen.dart';
+import 'package:pomo_duck/features/shop_item/shop_item_screen.dart';
 
 import '../../features/common_page/maintain_screen.dart';
 import '../../features/common_page/page_not_found_screen.dart';
@@ -67,6 +68,14 @@ class AppRouter {
                         RouterKeyManager.instance.rootNavigatorKey,
                     builder: (BuildContext context, GoRouterState state) {
                       return const PomodoroScreen();
+                    },
+                  ),
+                  GoRoute(
+                    path: 'shop',
+                    parentNavigatorKey:
+                        RouterKeyManager.instance.rootNavigatorKey,
+                    builder: (BuildContext context, GoRouterState state) {
+                      return const ShopItemScreen();
                     },
                   ),
                 ],
