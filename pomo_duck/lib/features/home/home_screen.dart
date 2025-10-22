@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             8.width,
                             LCText.bold(
-                              'Điểm số dự kiến',
+                              LocaleKeys.expected_points.tr(),
                               fontSize: FontSizes.medium,
                             ),
                           ],
@@ -270,43 +270,43 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 LCText.medium(
-                                  'Hoàn thành pomodoro sẽ nhận được:',
+                                  LocaleKeys.complete_pomodoro_rewards.tr(),
                                   fontSize: FontSizes.small,
                                   color: Colors.grey.shade700,
                                 ),
                                 4.height,
                                 LCText.bold(
-                                  '+$expectedPoints điểm',
+                                  '+$expectedPoints ${LocaleKeys.points.tr()}',
                                   fontSize: FontSizes.big,
                                 ),
                                 8.height,
                                 if (settings.isStandardMode) ...[
-                                  LCText.medium(
-                                    '• Chế độ chuẩn: 150 điểm cố định',
+                                  LCText.medium(  
+                                    '• ${LocaleKeys.standard_mode_points.tr()}',
                                     fontSize: FontSizes.extraSmall,
                                     color: Colors.grey.shade600,
                                   ),
                                 ] else ...[
                                   LCText.medium(
-                                    '• Chế độ tùy chỉnh: ${settings.effectivePomodoroCycleCount} phiên × 10 điểm',
+                                    '• ${LocaleKeys.custom_mode_points.tr(namedArgs: {'count': settings.effectivePomodoroCycleCount.toString()})}',
                                     fontSize: FontSizes.extraSmall,
                                     color: Colors.grey.shade600,
                                   ),
                                   2.height,
                                   LCText.medium(
-                                    '• Thời gian học: ${(settings.workDuration / 60).round()} phút × 1 điểm',
+                                    '• ${LocaleKeys.study_time_points.tr(namedArgs: {'minutes': (settings.workDuration / 60).round().toString()})}',
                                     fontSize: FontSizes.extraSmall,
                                     color: Colors.grey.shade600,
                                   ),
                                   2.height,
                                   LCText.medium(
-                                    '• Short break: ${(settings.shortBreakDuration / 60).round()} phút (tối đa 20 điểm)',
+                                    '• ${LocaleKeys.short_break_points.tr(namedArgs: {'minutes': (settings.shortBreakDuration / 60).round().toString()})}',
                                     fontSize: FontSizes.extraSmall,
                                     color: Colors.grey.shade600,
                                   ),
                                   2.height,
                                   LCText.medium(
-                                    '• Long break: ${(settings.longBreakDuration / 60).round()} phút (tối đa 50 điểm)',
+                                    '• ${LocaleKeys.long_break_points.tr(namedArgs: {'minutes': (settings.longBreakDuration / 60).round().toString()})}',
                                     fontSize: FontSizes.extraSmall,
                                     color: Colors.grey.shade600,
                                   ),
@@ -342,13 +342,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               4.height,
                               LCText.medium(
-                                '• Mỗi 5 task liên tiếp: +200 điểm',
+                                '• ${LocaleKeys.consecutive_tasks_bonus.tr()}',
                                 fontSize: FontSizes.extraSmall,
                                 color: Colors.grey.shade600,
                               ),
                               2.height,
                               LCText.medium(
-                                '• Streak 30 ngày: +1000 điểm đặc biệt',
+                                '• ${LocaleKeys.streak_bonus.tr()}',
                                 fontSize: FontSizes.extraSmall,
                                 color: Colors.grey.shade600,
                               ),

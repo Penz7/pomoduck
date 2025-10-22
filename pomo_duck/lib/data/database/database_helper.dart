@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/task_model.dart';
 import '../models/session_model.dart';
 import '../models/pomodoro_cycle_model.dart';
 import '../models/statistics_model.dart';
+import '../../generated/locale_keys.g.dart';
 
 class DatabaseHelper {
   // Singleton instance
@@ -825,14 +827,14 @@ class DatabaseHelper {
     for (final session in sessionDurationResult) {
       final duration = session['duration'] as int;
       final count = session['count'] as int;
-      sessionDurationDistribution['${duration ~/ 60} phút'] = count;
+      sessionDurationDistribution['${duration ~/ 60} ${LocaleKeys.minutes.tr()}'] = count;
     }
     
     final breakDurationDistribution = <String, int>{};
     for (final breakData in breakDurationResult) {
       final sessionType = breakData['session_type'] as String;
       final avgDuration = (breakData['avg_duration'] as num).toInt();
-      breakDurationDistribution[sessionType == 'short_break' ? 'Nghỉ ngắn' : 'Nghỉ dài'] = avgDuration;
+      breakDurationDistribution[sessionType == 'short_break' ? LocaleKeys.short_break_label.tr() : LocaleKeys.long_break_label.tr()] = avgDuration;
     }
     
     // Tìm giờ và ngày hiệu suất cao nhất
@@ -897,7 +899,15 @@ class DatabaseHelper {
 
   /// Lấy tên ngày trong tuần
   String _getDayName(int dayOfWeek) {
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    final days = [
+      LocaleKeys.sunday.tr(),
+      LocaleKeys.monday.tr(),
+      LocaleKeys.tuesday.tr(),
+      LocaleKeys.wednesday.tr(),
+      LocaleKeys.thursday.tr(),
+      LocaleKeys.friday.tr(),
+      LocaleKeys.saturday.tr(),
+    ];
     return days[dayOfWeek];
   }
 

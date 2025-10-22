@@ -8,7 +8,6 @@ import 'package:pomo_duck/features/pomodoro/pomodoro_cubit.dart';
 import 'package:pomo_duck/generated/assets/assets.gen.dart';
 import 'package:pomo_duck/common/global_bloc/config_pomodoro/config_pomodoro_cubit.dart';
 import 'package:pomo_duck/generated/locale_keys.g.dart';
-import 'package:pomo_duck/common/widgets/score_display.dart';
 import 'package:pomo_duck/common/global_bloc/score/score_bloc.dart';
 
 class PomodoroScreen extends StatelessWidget {
@@ -91,7 +90,7 @@ class PomodoroScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Streak đã được reset do dừng giữa chừng'),
+            content: Text(LocaleKeys.streak_reset_stop_message.tr()),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
           ),

@@ -850,7 +850,7 @@ class _DistributionChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return const Text('Không có dữ liệu');
+      return Text(LocaleKeys.no_data.tr());
     }
 
     final maxValue = data.values.reduce((a, b) => a > b ? a : b);
@@ -934,7 +934,7 @@ Widget _buildEmptyState(BuildContext context) {
         ),
         const SizedBox(height: 16),
         Text(
-          'Chưa có thống kê',
+          LocaleKeys.no_statistics_yet_title.tr(),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
@@ -943,7 +943,7 @@ Widget _buildEmptyState(BuildContext context) {
         ),
         const SizedBox(height: 8),
         Text(
-          'Bắt đầu làm việc để xem thống kê chi tiết',
+          LocaleKeys.no_statistics_yet_message.tr(),
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey.shade500,
@@ -972,9 +972,9 @@ void _showProductivityScoreDialog(BuildContext context) {
 /// Thông báo tính năng xuất PDF đang được chuẩn bị
 void _showExportPdfComingSoon(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Tính năng xuất PDF sẽ sớm có mặt!'),
-      duration: Duration(seconds: 2),
+    SnackBar(
+      content: Text(LocaleKeys.export_pdf_coming_soon.tr()),
+      duration: const Duration(seconds: 2),
     ),
   );
 }

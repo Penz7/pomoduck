@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:pomo_duck/core/local_storage/hive_data_manager.dart';
 import 'package:pomo_duck/data/models/user_score_model.dart';
+import '../../generated/locale_keys.g.dart';
 
 /// Service quản lý streak cho user
 class StreakService {
@@ -180,22 +182,22 @@ class StreakInfo {
   /// Lấy thông tin streak dạng text
   String get streakText {
     if (currentStreak == 0) {
-      return 'Chưa có streak';
+      return LocaleKeys.no_streak.tr();
     } else if (currentStreak == 1) {
-      return '1 ngày liên tiếp';
+      return LocaleKeys.one_day_streak.tr();
     } else {
-      return '$currentStreak ngày liên tiếp';
+      return LocaleKeys.days_streak.tr(namedArgs: {'count': currentStreak.toString()});
     }
   }
 
   /// Lấy thông tin streak dài nhất dạng text
   String get longestStreakText {
     if (longestStreak == 0) {
-      return 'Chưa có streak dài nhất';
+      return LocaleKeys.no_longest_streak.tr();
     } else if (longestStreak == 1) {
-      return '1 ngày';
+      return LocaleKeys.one_day_longest.tr();
     } else {
-      return '$longestStreak ngày';
+      return LocaleKeys.days_longest.tr(namedArgs: {'count': longestStreak.toString()});
     }
   }
 
